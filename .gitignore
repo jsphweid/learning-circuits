@@ -1,0 +1,8 @@
+*.out
+venv
+__pycache__
+*.pyc
+*.vcd
+pyvenv.cfg
+.vscode
+.pytest_cache

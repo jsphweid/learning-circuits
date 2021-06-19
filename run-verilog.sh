@@ -1,0 +1,1 @@
+iverilog -o out.out verilog/fns.v verilog/tests.v && vvp out.out
