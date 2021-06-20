@@ -1,3 +1,5 @@
+from typing import List
+
 class Relay:
 	"""
 	The most we can do here is just be able to query the state of the system
@@ -22,6 +24,9 @@ class Relay:
 	def _get_switch_state(self):
 		return self._switch_handle() if self._switch_handle else self._switch_is_on
 
+	def _get_power_source_state(self):
+		return self._power_source if isinstance(self._power_source, bool) else self._power_source()
+
 	@property
 	def output(self):
 		# This is just a handle to the output state, making it easier to "connect pieces"
@@ -29,7 +34,10 @@ class Relay:
 
 	@property
 	def output_state(self):
-		return self._get_switch_state() and self._power_source
-	
+		return self._get_switch_state() and self._get_power_source_state()
 
-
+	@staticmethod
+	def has_output(relays: List['Relay']) -> bool:
+		# This is just an dumb abstraction over what would be "merged" signals, useful in
+		# testing relays connected in parallel
+		return any([r.output_state for r in relays])
