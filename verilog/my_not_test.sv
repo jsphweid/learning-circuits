@@ -1,11 +1,11 @@
-`include "my_nor.sv"
+`include "my_not.sv"
 
-module my_nor_test();
+module my_not_test();
   reg a;
   reg expected;
   wire out;
 
-  my_nor a1(out, a);
+  my_not a1(out, a);
 
   task assert_else_error;
     assert (expected == out) else $error("a was %d, out was $d but expected %d\n", a, out, expected);
