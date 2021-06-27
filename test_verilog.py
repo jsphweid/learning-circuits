@@ -48,14 +48,10 @@ def compile_test_file(test_file: FileToTest) -> str:
 def assert_no_errors(compiled_filepath: str):
 	simulation_command = ["vvp", compiled_filepath]
 
-	try:
-		output = check_output(simulation_command).decode("utf-8")
-		assertion_errors = len(re.findall(r'(Error: |ERROR: )', output))
-		if assertion_errors > 0:
-			raise Exception(output)
-	except CalledProcessError as e:
-		print(f"Could not assert no errors in {compiled_filepath}", e)
-		sys.exit(1)
+	output = check_output(simulation_command).decode("utf-8")
+	assertion_errors = len(re.findall(r'(Error: |ERROR: )', output))
+	if assertion_errors > 0:
+		raise Exception(output)
 
 
 @pytest.fixture(autouse=True, scope="module")
