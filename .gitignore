@@ -6,3 +6,4 @@ __pycache__
 pyvenv.cfg
 .vscode
 .pytest_cache
+build
