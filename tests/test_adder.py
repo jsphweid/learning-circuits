@@ -1,6 +1,6 @@
 import pytest
 
-from circuit.adder import add_two_binary_numbers_of_equal_size
+from fun.adder import add_two_binary_numbers_of_equal_size
 
 
 @pytest.mark.parametrize('left, right, result', [
