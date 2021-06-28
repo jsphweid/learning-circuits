@@ -2,7 +2,7 @@
   `include "my_mux_16.sv"
 `endif
 
-module my_mux_4_way(out, a, b, c, d, sel);
+module my_mux_16_4_way(out, a, b, c, d, sel);
   input [15:0] a, b, c, d;
   input [1:0] sel;
   output [15:0] out;
