@@ -11,9 +11,9 @@ module my_dmux_test();
   endtask
 
   initial begin
-    in = 0; sel = 0; a_expected = 0; #10; b_expected = 0; assert_else_error();
-    in = 1; sel = 0; a_expected = 1; #10; b_expected = 0; assert_else_error();
-    in = 0; sel = 1; a_expected = 0; #10; b_expected = 0; assert_else_error();
-    in = 1; sel = 1; a_expected = 0; #10; b_expected = 1; assert_else_error();
+    in = 0; sel = 0; #10; a_expected = 0; b_expected = 0; assert_else_error();
+    in = 1; sel = 0; #10; a_expected = 1; b_expected = 0; assert_else_error();
+    in = 0; sel = 1; #10; a_expected = 0; b_expected = 0; assert_else_error();
+    in = 1; sel = 1; #10; a_expected = 0; b_expected = 1; assert_else_error();
   end
 endmodule
