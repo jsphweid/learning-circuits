@@ -1,8 +1,7 @@
 `include "my_not.sv"
 
 module my_not_test();
-  reg a;
-  reg expected;
+  reg a, expected;
   wire out;
 
   my_not a1(out, a);
