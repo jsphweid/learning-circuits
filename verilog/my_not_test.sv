@@ -7,7 +7,7 @@ module my_not_test();
   my_not a1(out, a);
 
   task assert_else_error;
-    assert (expected == out) else $error("a was %d, out was $d but expected %d\n", a, out, expected);
+    assert (expected == out) else $error("a was %d, out was %d but expected %d\n", a, out, expected);
   endtask
 
   initial begin
