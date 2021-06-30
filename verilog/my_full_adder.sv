@@ -12,5 +12,4 @@ module my_full_adder(sum, carry, a, b, c);
   my_xor x1(sum, half_adder_sum, c);
   my_and a1(w1, half_adder_sum, c);
   my_or o1(carry, w1, half_adder_carry);
-
 endmodule

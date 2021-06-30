@@ -16,6 +16,8 @@ module my_adder_16_test;
     a = 16'b0000000000000001; b = 16'b0000000000000001; #10; expected = 16'b0000000000000010; assert_else_error();
     a = 16'b0000000000001111; b = 16'b0000000000001111; #10; expected = 16'b0000000000011110; assert_else_error();
     a = 16'b0100000000000000; b = 16'b0100000000000000; #10; expected = 16'b1000000000000000; assert_else_error();
-    // TODO: test edge cases... when overflow? 
+    
+    // TODO: verify these overflow cases... in the book it says "overflow is neither detected or handled"
+    a = 16'b1000000000000000; b = 16'b1000000000000000; #10; expected = 16'b0000000000000000; assert_else_error();
   end
 endmodule
