@@ -1,3 +1,7 @@
+# TODO
+
+Change a lot of %d's to %b's
+
 # learning circuits
 
 This is just a repo that catalogs basic experiments in making simple emulated circuits in python and verilog. It is strictly educational for me and has little to no value outside of that.
