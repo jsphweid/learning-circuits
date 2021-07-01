@@ -7,7 +7,7 @@ module relay_parallel_test;
   our_relay r2 (c2, switch2, batt2);
 
   initial begin
-    $monitor("relay_parallel_test: At time %2t, switch1 = %d, switch2 = %d, c3 (single output) = %d", $time, switch1, switch2, c3);
+    $monitor("relay_parallel_test: At time %2t, switch1 = %b, switch2 = %b, c3 (single output) = %b", $time, switch1, switch2, c3);
     $dumpfile("vcds/relay_parallel_test.vcd");
     $dumpvars(0, relay_parallel_test);
 

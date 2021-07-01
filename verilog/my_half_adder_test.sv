@@ -7,7 +7,7 @@ module my_half_adder_test;
   my_half_adder a1(sum, carry, a, b);
 
   task assert_else_error;
-    assert (sum == sum_expected && carry == carry_expected) else $error("a was %d, b was %d, expected sum carry to be %d, %d but was %d, %d", a, b, sum_expected, carry_expected, sum, carry);
+    assert (sum == sum_expected && carry == carry_expected) else $error("a was %b, b was %b, expected sum carry to be %b, %b but was %b, %b", a, b, sum_expected, carry_expected, sum, carry);
   endtask
 
   initial begin

@@ -9,7 +9,7 @@ module my_mux_16_test();
   my_mux_16 a1(out, a, b, sel);
 
   task assert_else_error;
-    assert (expected == out) else $error("a was %d, b was %d, sel was %d, out was %d but expected %d\n", a, b, sel, out, expected);
+    assert (expected == out) else $error("a was %b, b was %b, sel was %b, out was %b but expected %b\n", a, b, sel, out, expected);
   endtask
 
   initial begin

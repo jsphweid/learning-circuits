@@ -8,7 +8,7 @@ module my_or_8_way_test;
   my_or_8_way a1(out, in);
 
   task assert_else_error;
-    assert (expected == out) else $error("in was %d and out was %d but expected %d", in, out, expected);
+    assert (expected == out) else $error("in was %b and out was %b but expected %b", in, out, expected);
   endtask
 
   initial begin

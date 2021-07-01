@@ -5,7 +5,7 @@ module nor_latch_test;
   nor_latch l1(o1, o2, set, reset);
 
   initial begin
-    $monitor("nor_latch_test: At time %2t, set = %d, reset = %d, o1 = %d, o2 = %d", $time, set, reset, o1, o2);
+    $monitor("nor_latch_test: At time %2t, set = %b, reset = %b, o1 = %b, o2 = %b", $time, set, reset, o1, o2);
     $dumpfile("vcds/nor_latch_test.vcd");
     $dumpvars(0, nor_latch_test);
 

@@ -10,7 +10,7 @@ module my_dmux_8_way_test;
   task assert_else_error;
     assert (a_expected == a_out && b_expected == b_out && c_expected == c_out && d_expected == d_out && 
             e_expected == e_out && f_expected == f_out && g_expected == g_out && h_expected == h_out) 
-      else $error("in was %d, sel was %d, but output was not correct", in, sel);
+      else $error("in was %b, sel was %b, but output was not correct", in, sel);
   endtask
 
   initial begin

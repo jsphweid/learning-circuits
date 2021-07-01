@@ -14,7 +14,7 @@ module nothing_test;
   nothing n (o, a);
 
   initial begin
-    $monitor("nothing test: At time %2t, a = %d, o = %d", $time, a, o);
+    $monitor("nothing test: At time %2t, a = %b, o = %b", $time, a, o);
     $dumpfile("vcds/nothing.vcd");
     $dumpvars(0, nothing_test);
 

@@ -8,7 +8,7 @@ module my_not_16_test();
   my_not_16 a1(out, in);
 
   task assert_else_error;
-    assert (expected == out) else $error("in was %d, out was %d but expected %d\n", in, out, expected);
+    assert (expected == out) else $error("in was %b, out was %b but expected %b\n", in, out, expected);
   endtask
 
   initial begin

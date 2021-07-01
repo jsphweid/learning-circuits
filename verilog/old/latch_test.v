@@ -5,7 +5,7 @@ module latch_test;
   latch l1(o1, set, reset);
 
   initial begin
-    $monitor("latch_test: At time %2t, set = %d, reset = %d, o1 = %d", $time, set, reset, o1);
+    $monitor("latch_test: At time %2t, set = %b, reset = %b, o1 = %b", $time, set, reset, o1);
     $dumpfile("vcds/latch_test.vcd");
     $dumpvars(0, latch_test);
 

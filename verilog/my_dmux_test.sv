@@ -7,7 +7,7 @@ module my_dmux_test();
   my_dmux a1(a_out, b_out, in, sel);
 
   task assert_else_error;
-    assert (a_expected == a_out && b_expected == b_out) else $error("in was %d, select was %d, a_out was %d, b_out was %d but expected a_out to be %d and b_out to be %d\n", in, sel, a_out, b_out, a_expected, b_expected);
+    assert (a_expected == a_out && b_expected == b_out) else $error("in was %b, select was %b, a_out was %b, b_out was %b but expected a_out to be %b and b_out to be %b\n", in, sel, a_out, b_out, a_expected, b_expected);
   endtask
 
   initial begin

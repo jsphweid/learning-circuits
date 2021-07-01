@@ -8,7 +8,7 @@ module my_xor_test();
   my_xor a1(out, a, b);
 
   task assert_else_error;
-    assert (expected == out) else $error("a was %d, b was %d, out was %d but expected %d\n", a, b, out, expected);
+    assert (expected == out) else $error("a was %b, b was %b, out was %b but expected %b\n", a, b, out, expected);
   endtask
 
   initial begin

@@ -12,7 +12,7 @@ module my_mux_16_4_way_test;
   my_mux_16_4_way a1(out, a, b, c, d, sel);
 
   task assert_else_error;
-    assert (expected == out) else $error("a was %d, b was %d, c was %d, d was %d... sel was %d, and out was %d but expected %d", a, b, c, d, sel, out, expected);
+    assert (expected == out) else $error("a was %b, b was %b, c was %b, d was %b... sel was %b, and out was %b but expected %b", a, b, c, d, sel, out, expected);
   endtask
 
   initial begin

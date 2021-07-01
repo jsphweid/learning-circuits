@@ -6,7 +6,7 @@ module relay_series_test;
   our_relay r2 (c2, switch2, c1); // output of the first (c1) controls the battery of the second
 
   initial begin
-    $monitor("relay_series_test: At time %2t, switch1 = %d, c2 (2nd relay) = %d", $time, switch1, c2);
+    $monitor("relay_series_test: At time %2t, switch1 = %b, c2 (2nd relay) = %b", $time, switch1, c2);
     $dumpfile("vcds/relay_series_test.vcd");
     $dumpvars(0, relay_series_test);
 

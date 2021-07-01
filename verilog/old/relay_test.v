@@ -5,7 +5,7 @@ module relay_test;
   our_relay r (c, switch, batt);
 
   initial begin
-    $monitor("relay_test: At time %2t, switch = %d, batt = %d, c = %d", $time, switch, batt, c);
+    $monitor("relay_test: At time %2t, switch = %b, batt = %b, c = %b", $time, switch, batt, c);
     $dumpfile("vcds/relay_test.vcd");
     $dumpvars(0, relay_test);
 

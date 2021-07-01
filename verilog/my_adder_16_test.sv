@@ -7,7 +7,7 @@ module my_adder_16_test;
   my_adder_16 a1(out, a, b);
 
   task assert_else_error;
-    assert (expected == out) else $error("a was %d, b was %d, out was %d but expected %d", a, b, out, expected);
+    assert (expected == out) else $error("a was %b, b was %b, out was %b but expected %b", a, b, out, expected);
   endtask
 
   initial begin
