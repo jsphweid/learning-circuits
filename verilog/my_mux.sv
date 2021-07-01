@@ -1,16 +1,15 @@
 `ifndef my_or
   `include "my_or.sv"
 `endif
-
 `ifndef my_not
   `include "my_not.sv"
 `endif
-
 `ifndef my_and
   `include "my_and.sv"
 `endif
+`define my_mux 1
 
-module my_mux (o, a, b, sel);
+module my_mux(o, a, b, sel);
   input a, b, sel;
   output o;
 

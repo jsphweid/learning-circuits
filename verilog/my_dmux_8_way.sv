@@ -1,6 +1,7 @@
 `ifndef my_dmux_4_way
   `include "my_dmux_4_way.sv"
 `endif
+`define my_dmux_8_way 1
 
 module my_dmux_8_way(a_out, b_out, c_out, d_out, e_out, f_out, g_out, h_out, in, sel);
   input in;

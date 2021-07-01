@@ -1,6 +1,7 @@
 `ifndef my_or
   `include "my_or.sv"
 `endif
+`define my_or_8_way 1
 
 module my_or_8_way(out, in);
   input [7:0] in;

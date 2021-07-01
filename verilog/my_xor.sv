@@ -1,13 +1,12 @@
 `ifndef my_or
   `include "my_or.sv"
 `endif
-
 `ifndef my_and
   `include "my_and.sv"
 `endif
+`define my_xor 1
 
-
-module my_xor (o, a, b);
+module my_xor(o, a, b);
   input a, b;
   output o;
   wire w1, w2;

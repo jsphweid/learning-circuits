@@ -1,6 +1,7 @@
 `ifndef my_xor
   `include "my_xor.sv"
 `endif
+`define my_half_adder 1
 
 module my_half_adder(sum, carry, a, b);
   input a, b;

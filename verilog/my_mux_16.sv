@@ -1,6 +1,7 @@
 `ifndef my_mux
   `include "my_mux.sv"
 `endif
+`define my_mux_16 1
 
 module my_mux_16(out, a, b, sel);
   input [15:0] a, b;

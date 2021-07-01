@@ -1,10 +1,10 @@
 `ifndef my_not
   `include "my_not.sv"
 `endif
-
 `ifndef my_and
   `include "my_and.sv"
 `endif
+`define my_dmux_4_way 1
 
 module my_dmux_4_way(a_out, b_out, c_out, d_out, in, sel);
   input in;

@@ -1,6 +1,7 @@
 `ifndef my_full_adder
   `include "my_full_adder.sv"
 `endif
+`define my_adder_16 1
 
 module my_adder_16(out, a, b);
   input [15:0] a, b;

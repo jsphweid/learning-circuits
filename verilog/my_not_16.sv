@@ -1,6 +1,7 @@
 `ifndef my_not
   `include "my_not.sv"
 `endif
+`define my_not_16 1
 
 module my_not_16(out, in);
   input [15:0] in;

@@ -1,6 +1,7 @@
 `ifndef my_mux_16_4_way
   `include "my_mux_16_4_way.sv"
 `endif
+`define my_mux_16_8_way 1
 
 module my_mux_16_8_way(out, a, b, c, d, e, f, g, h, sel);
   input [15:0] a, b, c, d, e, f, g, h;

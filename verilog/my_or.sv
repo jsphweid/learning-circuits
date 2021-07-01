@@ -1,3 +1,5 @@
+`define my_or 1
+
 module my_or(o, x, y);
   output o;
   input x, y;
