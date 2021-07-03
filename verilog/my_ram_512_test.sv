@@ -27,6 +27,7 @@ module my_ram_512_test;
     in = 16'd7; addr = 9'b001010101; #1; clk = 1; #1; clk = 0;
     in = 16'd8; addr = 9'b000000110; #1; clk = 1; #1; clk = 0;
     in = 16'd9; addr = 9'b110100111; #1; clk = 1; #1; clk = 0;
+    in = 16'd1; addr = 9'b111111111; #1; clk = 1; #1; clk = 0;
 
     // read
     load = 0;
@@ -38,6 +39,7 @@ module my_ram_512_test;
     #1; clk = 0; #1; addr = 9'b001010101; clk = 1; #1; assert_else_error(7);
     #1; clk = 0; #1; addr = 9'b000000110; clk = 1; #1; assert_else_error(8);
     #1; clk = 0; #1; addr = 9'b110100111; clk = 1; #1; assert_else_error(9);
+    #1; clk = 0; #1; addr = 9'b111111111; clk = 1; #1; assert_else_error(1);
 
   end
 endmodule
