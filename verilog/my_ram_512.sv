@@ -1,12 +1,12 @@
-`ifndef my_ram_64
-  `include "my_ram_64.sv"
-`endif
-`ifndef my_mux_16_8_way
-  `include "my_mux_16_8_way.sv"
-`endif
-`ifndef my_dmux_8_way
-  `include "my_dmux_8_way.sv"
-`endif
+// `ifndef my_ram_64
+//   `include "my_ram_64.sv"
+// `endif
+// `ifndef my_mux_16_8_way
+//   `include "my_mux_16_8_way.sv"
+// `endif
+// `ifndef my_dmux_8_way
+//   `include "my_dmux_8_way.sv"
+// `endif
 
 `define my_ram_512 1
 
