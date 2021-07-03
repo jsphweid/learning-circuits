@@ -8,7 +8,7 @@ module my_ram_8_test;
 
   my_ram_8 r1(out, in, addr, clk, load);
 
-  task assert_else_error(exp);
+  task assert_else_error(reg [15:0] exp);
     assert (out == exp) else $error("in: %d, addr: %b, clk: %b, load: %b, out: %d but expected %b", in, addr, clk, load, out, exp);
   endtask
 
@@ -18,14 +18,14 @@ module my_ram_8_test;
 
     // write
     load = 1;
-    in = 2; addr = 3'b000; #1; clk = 1; #1;
-    in = 3; addr = 3'b001; #1; clk = 1; #1;
-    in = 4; addr = 3'b010; #1; clk = 1; #1;
-    in = 5; addr = 3'b011; #1; clk = 1; #1;
-    in = 6; addr = 3'b100; #1; clk = 1; #1;
-    in = 7; addr = 3'b101; #1; clk = 1; #1;
-    in = 8; addr = 3'b110; #1; clk = 1; #1;
-    in = 9; addr = 3'b111; #1; clk = 1; #1;
+    in = 16'd2; addr = 3'b000; #1; clk = 1; #1; clk = 0;
+    in = 16'd3; addr = 3'b001; #1; clk = 1; #1; clk = 0;
+    in = 16'd4; addr = 3'b010; #1; clk = 1; #1; clk = 0;
+    in = 16'd5; addr = 3'b011; #1; clk = 1; #1; clk = 0;
+    in = 16'd6; addr = 3'b100; #1; clk = 1; #1; clk = 0;
+    in = 16'd7; addr = 3'b101; #1; clk = 1; #1; clk = 0;
+    in = 16'd8; addr = 3'b110; #1; clk = 1; #1; clk = 0;
+    in = 16'd9; addr = 3'b111; #1; clk = 1; #1; clk = 0;
 
     // read
     load = 0;
