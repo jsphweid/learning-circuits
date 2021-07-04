@@ -7,3 +7,4 @@ pyvenv.cfg
 .vscode
 .pytest_cache
 build
+local

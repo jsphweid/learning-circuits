@@ -19,7 +19,7 @@ def ensure_build_folder_is_reset():
 
 def get_test_files() -> List[FileToTest]:
 	relevant_paths = []
-	for path, _, files in os.walk("./verilog"):
+	for path, _, files in os.walk("./n2t/verilog"):
 		for name in files:
 			if "_test.sv" in name:
 				relevant_paths.append(
