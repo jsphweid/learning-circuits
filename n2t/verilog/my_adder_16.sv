@@ -6,6 +6,7 @@
 module my_adder_16(out, a, b);
   input [15:0] a, b;
   output [15:0] out;
+  /* verilator lint_off UNUSED */
   wire [16:0] last_carry;
 
   assign last_carry[0] = 0;

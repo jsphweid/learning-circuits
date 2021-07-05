@@ -6,7 +6,7 @@
 module my_or_8_way(out, in);
   input [7:0] in;
   output out;
-  wire w1, w2, w3, w4, w5, w6, w7;
+  wire w1, w2, w3, w4, w5, w6;
 
   my_or o1(w1, in[0], in[1]);
   my_or o2(w2, w1, in[2]);

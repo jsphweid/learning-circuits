@@ -84,11 +84,10 @@ module my_cpu(outM, writeM, addressM, pc, inM, instruction, clk, reset);
   //  * is the instruction itself (since it contains an address for A instructions)
   //  * output of some ALU operation
   // If it's an A instruction, it'll store the address, if it's a C instructionwire not_clock;
-  
   my_not clock_not(not_clk, clk);
 
   wire [15:0] reg_a_out, reg_d_out, mux_a_out;
-  wire is_load_from_c_instruction;
+  wire is_load_from_c_instruction, not_clk, should_load_a_reg;
   my_and special_c(is_load_from_c_instruction, is_c_instruction, instruction[5]);
   my_or load_a_condition(should_load_a_reg, is_a_instruction, is_load_from_c_instruction);
   my_mux_16 mux_a(mux_a_out, instruction, alu_out, is_load_from_c_instruction);
