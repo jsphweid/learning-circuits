@@ -8,3 +8,4 @@ pyvenv.cfg
 .pytest_cache
 build
 local
+obj_dir
