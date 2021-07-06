@@ -4,9 +4,7 @@
 `ifndef my_mux_16
   `include "my_mux_16.sv"
 `endif
-`ifndef my_screen
-  `include "my_screen.sv"
-`endif
+`include "my_screen.sv"
 `define my_memory 1
 
 module my_memory(out, in, addr, clk, load);
@@ -23,7 +21,7 @@ module my_memory(out, in, addr, clk, load);
   wire load_screen = address_is_screen && load;
   wire load_main_ram = address_is_main_ram && load;
   my_ram_16k ram1(ram_out, in, addr[13:0], clk, load_main_ram);
-  my_screen screen1(screen_out, in, addr[12:0], clk, load_screen);
+  my_screen screen(screen_out, in, addr[12:0], clk, load_screen);
   reg [15:0] scancode /*verilator public*/;
 
   wire [15:0] keyboard_screen_out;
