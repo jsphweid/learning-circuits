@@ -25,8 +25,32 @@ module pc_tb();
     #1; in = -32123; load = 1; inc = 1; reset = 0; #1; clk = 1; #1; assert_else_error(-32123);
     #1; in = -32123; load = 1; inc = 1; reset = 0; #1; clk = 0; #1; assert_else_error(-32123);
     
-    // experimental
+    // reset
     #1; in = -32123; load = 1; inc = 0; reset = 1; #1; clk = 1; #1; assert_else_error(0);
+
+    // increment
+    #1; in = -32123; load = 0; inc = 1; reset = 0; #1; clk = 0; #1; assert_else_error(0);
+    #1; in = -32123; load = 0; inc = 1; reset = 0; #1; clk = 1; #1; assert_else_error(1);
+    #1; in = -32123; load = 0; inc = 1; reset = 0; #1; clk = 0; #1; assert_else_error(1);
+    #1; in = -32123; load = 0; inc = 1; reset = 0; #1; clk = 1; #1; assert_else_error(2);
+    #1; in = -32123; load = 0; inc = 1; reset = 0; #1; clk = 0; #1; assert_else_error(2);
+    #1; in = -32123; load = 0; inc = 1; reset = 0; #1; clk = 1; #1; assert_else_error(3);
+    #1; in = -32123; load = 0; inc = 1; reset = 0; #1; clk = 0; #1; assert_else_error(3);
+    #1; in = -32123; load = 0; inc = 1; reset = 0; #1; clk = 1; #1; assert_else_error(4);
+    #1; in = -32123; load = 0; inc = 1; reset = 0; #1; clk = 0; #1; assert_else_error(4);
+    #1; in = -32123; load = 0; inc = 1; reset = 0; #1; clk = 1; #1; assert_else_error(5);
+    #1; in = -32123; load = 0; inc = 1; reset = 0; #1; clk = 0; #1; assert_else_error(5);
+    #1; in = -32123; load = 0; inc = 1; reset = 0; #1; clk = 1; #1; assert_else_error(6);
+    #1; in = -32123; load = 0; inc = 1; reset = 0; #1; clk = 0; #1; assert_else_error(6);
+    #1; in = -32123; load = 0; inc = 1; reset = 0; #1; clk = 1; #1; assert_else_error(7);
+
+    // reset
+    #1; in = 0; load = 0; inc = 1; reset = 1; #1; clk = 0; #1; clk = 1; #1; assert_else_error(0);
+    
+    #1; in = 1; load = 0; inc = 1; reset = 0; #1; clk = 0; #1; clk = 1; #1; assert_else_error(1);
+    #1; in = 1; load = 0; inc = 1; reset = 0; #1; clk = 0; #1; clk = 1; #1; assert_else_error(2);
+    #1; in = 1; load = 0; inc = 1; reset = 0; #1; clk = 0; #1; clk = 1; #1; assert_else_error(3);
+    #1; in = 0; load = 0; inc = 1; reset = 0; #1; clk = 0; #1; clk = 1; #1; assert_else_error(4);
   end
 
 endmodule
