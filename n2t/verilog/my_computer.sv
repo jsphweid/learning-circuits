@@ -23,5 +23,5 @@ module my_computer(reset, clk);
   my_rom_32k rom(rom_out_instruction, cpu_out_pc);
 
   // out, in, addr, clk, load
-  my_memory ram(memory_out, cpu_out_m, cpu_out_address_m, clk, cpu_out_write_m);
+  my_memory ram(memory_out, cpu_out_m, cpu_out_address_m, !clk, cpu_out_write_m);
 endmodule

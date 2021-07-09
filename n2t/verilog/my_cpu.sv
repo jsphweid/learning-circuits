@@ -63,7 +63,7 @@ module my_cpu(outM, writeM, addressM, pc, inM, instruction, clk, reset);
   wire lessThan = ng;
   wire zero = zr;
   wire greaterThan = !(zero || lessThan);
-  wire jump = is_c_instruction && (instruction[0] && greaterThan) || (instruction[1] && zero) || (instruction[2] && lessThan);
+  wire jump = is_c_instruction && ((instruction[0] && greaterThan) || (instruction[1] && zero) || (instruction[2] && lessThan));
   wire [15:0] pc_out_temp;
   wire notJump = !jump;
 

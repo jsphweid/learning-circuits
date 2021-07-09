@@ -94,8 +94,8 @@ void draw()
 int main(int argc, char *args[])
 {
   top = new Vmy_computer;
-  // ifstream rom("fill.hack");
   ifstream rom("fill.hack");
+  // ifstream rom("pong.hack");
   // ifstream rom("color.hack");
   assert(rom);
 
