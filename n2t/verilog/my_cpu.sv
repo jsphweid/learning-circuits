@@ -55,20 +55,54 @@ module my_cpu(outM, writeM, addressM, pc, inM, instruction, clk, reset);
   // What should it write M... the ALU output, right?
   assign outM = alu_out;
 
+  // outM 0000010111000000, writeM 1, addressM 000000000010001, pc 000000000000101, inM 0000000000000000, instruction 1110101010001000, clk 0, reset 0
+
+  // integer f;
+  // always @(clk) begin
+  //   f = $fopen("output2.txt","a");
+  //   $fwrite(f,"cpu: clk %b, outM %b, writeM %b, addressM %b, pc %b, inM %b, instruction %b, reset %b\n", clk, outM, writeM, addressM, pc, inM, instruction, reset);
+  //   $fclose(f);  
+  // end
+
   //////////////////////////////     PC     /////////////////////////////////
   // If reset is enabled, it should return the pc to 0 (on the next clock tick?)
   // increment - Whether we should increment - always increment since reset/load have priority
   // load - 1 if there is a jump
   // in - always the address in A register. It won't jump unless load is 1
-  wire lessThan = ng;
-  wire zero = zr;
-  wire greaterThan = !(zero || lessThan);
-  wire jump = is_c_instruction && (instruction[0] && greaterThan) || (instruction[1] && zero) || (instruction[2] && lessThan);
-  wire [15:0] pc_out_temp;
-  wire notJump = !jump;
+  // wire lessThan = ng;
+  // wire zero = zr;
+  // wire greaterThan = !(zero || lessThan);
+  // wire jump = is_c_instruction && (instruction[0] && greaterThan) || (instruction[1] && zero) || (instruction[2] && lessThan);
+  // wire [15:0] pc_out_temp;
+  // wire notJump = !jump;
 
-  my_pc pc1(pc_out_temp, reg_a_out, jump, notJump, reset, not_clk);
-  assign pc = pc_out_temp[14:0];
+  // my_pc pc1(pc_out_temp, reg_a_out, jump, notJump, reset, not_clk);
+  // assign pc = pc_out_temp[14:0];
+
+
+    wire jeq;
+    my_and jump_is_zero(jeq, zr, instruction[1]);
+    wire jlt;
+    my_and jump_is_negative(jlt, ng, instruction[2]);
+    wire zeroOrNeg;
+    my_or is_zero_or_neg(zeroOrNeg, zr, ng);
+    wire positive;
+    my_not is_positive(positive, zeroOrNeg);
+    wire jgt;
+    my_and jump_if_positive(jgt, positive, instruction[0]);
+    wire jle;
+    my_or jump_if_negative(jle, jeq, jlt);
+    wire jumpToA;
+    my_or should_jump_to_a(jumpToA, jle, jgt);
+    wire PCload;
+    my_and jump_if_c_instruction(PCload, instruction[15], jumpToA);
+    wire inc;
+    my_not should_inc(inc, PCload);
+
+    wire [15:0] pc_out_temp;
+    assign pc = pc_out_temp[14:0];
+
+    my_pc pc1(pc_out_temp, reg_a_out, PCload, inc, reset, not_clk);
 
   ////////////////////////////// REGISTERS //////////////////////////////////
   // module my_register(out, in, clk, load);

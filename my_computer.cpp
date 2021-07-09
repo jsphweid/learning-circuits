@@ -3,6 +3,7 @@
 #include <fstream>
 #include <bitset>
 #include <verilated.h>
+#include "verilated_vcd_c.h"
 #include "Vmy_computer.h"
 #include "Vmy_computer_my_computer.h"
 #include "Vmy_computer_my_rom_32k.h"
@@ -15,13 +16,35 @@ using namespace std;
 SDL_Renderer *renderer;
 Vmy_computer *top;
 
+// vluint64_t main_time = 0;
+
+// double sc_time_stamp () {
+//   return main_time;
+// }
+
+// void step()
+// {
+//   if ((main_time % 10) == 1) {
+//     top->clk = 1;
+//     top->eval();
+//   }
+//   if ((main_time % 10) == 6) {
+//     top->clk = 0;
+//     top->eval();
+//   }
+
+//   main_time++;
+// }
+
+
 void step()
 {
-  top->clk = 0;
-  top->eval();
   top->clk = 1;
   top->eval();
+  top->clk = 0;
+  top->eval();
 }
+
 
 int handleInput()
 {
@@ -33,6 +56,7 @@ int handleInput()
     case SDL_QUIT:
       return -1;
     case SDL_KEYDOWN:
+      cout << event.key.keysym.sym << endl;
       if (event.key.keysym.sym == SDLK_ESCAPE)
         return -2;
       if (event.key.keysym.sym == SDLK_LEFT)
@@ -81,6 +105,7 @@ void drawScreen()
   }
 }
 
+
 void draw()
 {
   SDL_SetRenderDrawColor(renderer, 100, 100, 100, 255);
@@ -93,7 +118,15 @@ void draw()
 
 int main(int argc, char *args[])
 {
+  // Verilated::traceEverOn(true);
+  // const std::unique_ptr<VerilatedContext> contextp{new VerilatedContext};
+  // Verilated::traceEverOn(true); //-------------------
+  // VerilatedVcdC* tfp = new VerilatedVcdC;//-------------------
   top = new Vmy_computer;
+
+  // top->trace(tfp, 99);//-------------------
+  // tfp->open("obj_dir/t_trace_ena_cc/simx.vcd"); //-------------------
+
   // ifstream rom("fill.hack");
   ifstream rom("fill.hack");
   // ifstream rom("color.hack");
@@ -121,7 +154,7 @@ int main(int argc, char *args[])
 
   initVideo();
 
-  do
+  do 
   {
     for (int c = 0; c < 100000; c++)
       step();

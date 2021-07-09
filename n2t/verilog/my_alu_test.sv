@@ -21,6 +21,10 @@ module my_alu_test;
     zx = 1; nx = 0; zy = 1; ny = 0; f = 1; no = 0; #10; 
     expected_out = 16'b0000000000000000; expected_zr = 1; expected_ng = 0; assert_else_error();
 
+    x = 16'b0001111111100000; y = 16'b0000000000010001;
+    zx = 1; nx = 0; zy = 1; ny = 0; f = 1; no = 0; #10; 
+    expected_out = 16'b0000000000000000; expected_zr = 1; expected_ng = 0; assert_else_error();
+
     // unconditional 1
     x = 16'b1010101010101010; y = 16'b1111000011110000;
     zx = 1; nx = 1; zy = 1; ny = 1; f = 1; no = 1; #10; 
@@ -36,20 +40,40 @@ module my_alu_test;
     zx = 0; nx = 0; zy = 1; ny = 1; f = 0; no = 0; #10; 
     expected_out = 16'b1010101010101010; expected_zr = 0; expected_ng = 1; assert_else_error();
 
+    // x
+    x = 16'b0000000000000000; y = 16'b1111000011110000;
+    zx = 0; nx = 0; zy = 1; ny = 1; f = 0; no = 0; #10; 
+    expected_out = 16'b0000000000000000; expected_zr = 1; expected_ng = 0; assert_else_error();
+
     // y
     x = 16'b1010101010101010; y = 16'b1111000011110000;
     zx = 1; nx = 1; zy = 0; ny = 0; f = 0; no = 0; #10; 
     expected_out = 16'b1111000011110000; expected_zr = 0; expected_ng = 1; assert_else_error();
+
+    // y
+    x = 16'b1010101010101010; y = 16'b0000000000000000;
+    zx = 1; nx = 1; zy = 0; ny = 0; f = 0; no = 0; #10; 
+    expected_out = 16'b0000000000000000; expected_zr = 1; expected_ng = 0; assert_else_error();
 
     // !x
     x = 16'b1010101010101010; y = 16'b1111000011110000;
     zx = 0; nx = 0; zy = 1; ny = 1; f = 0; no = 1; #10; 
     expected_out = 16'b0101010101010101; expected_zr = 0; expected_ng = 0; assert_else_error();
 
+    // !x
+    x = 16'b1111111111111111; y = 16'b1111000011110000;
+    zx = 0; nx = 0; zy = 1; ny = 1; f = 0; no = 1; #10; 
+    expected_out = 16'b0000000000000000; expected_zr = 1; expected_ng = 0; assert_else_error();
+
     // !y
     x = 16'b1010101010101010; y = 16'b1111000011110000;
     zx = 1; nx = 1; zy = 0; ny = 0; f = 0; no = 1; #10; 
     expected_out = 16'b0000111100001111; expected_zr = 0; expected_ng = 0; assert_else_error();
+
+    // !y
+    x = 16'b1010101010101010; y = 16'b1111111111111111;
+    zx = 1; nx = 1; zy = 0; ny = 0; f = 0; no = 1; #10; 
+    expected_out = 16'b0000000000000000; expected_zr = 1; expected_ng = 0; assert_else_error();
 
     // -x
     x = 16'b1010101010101010; y = 16'b1111000011110000;
@@ -66,10 +90,20 @@ module my_alu_test;
     zx = 0; nx = 1; zy = 1; ny = 1; f = 1; no = 1; #10; 
     expected_out = 16'b1010101010101011; expected_zr = 0; expected_ng = 1; assert_else_error();
 
+    // x + 1
+    x = 16'b1111111111111111; y = 16'b1111000011110000;
+    zx = 0; nx = 1; zy = 1; ny = 1; f = 1; no = 1; #10; 
+    expected_out = 16'b0000000000000000; expected_zr = 1; expected_ng = 0; assert_else_error();
+
     // y + 1
     x = 16'b1010101010101010; y = 16'b1111000011110000;
     zx = 1; nx = 1; zy = 0; ny = 1; f = 1; no = 1; #10; 
     expected_out = 16'b1111000011110001; expected_zr = 0; expected_ng = 1; assert_else_error();
+
+    // y + 1
+    x = 16'b1010101010101010; y = 16'b1111111111111111;
+    zx = 1; nx = 1; zy = 0; ny = 1; f = 1; no = 1; #10; 
+    expected_out = 16'b0000000000000000; expected_zr = 1; expected_ng = 0; assert_else_error();
 
     // x - 1
     x = 16'b1010101010101010; y = 16'b1111000011110000;
@@ -91,6 +125,11 @@ module my_alu_test;
     zx = 0; nx = 1; zy = 0; ny = 0; f = 1; no = 1; #10; 
     expected_out = 16'b1011100110111010; expected_zr = 0; expected_ng = 1; assert_else_error();
 
+    // x - y
+    x = 16'b1111111111111111; y = 16'b1111111111111111;
+    zx = 0; nx = 1; zy = 0; ny = 0; f = 1; no = 1; #10; 
+    expected_out = 16'b0000000000000000; expected_zr = 1; expected_ng = 0; assert_else_error();
+
     // y - x
     x = 16'b1010101010101010; y = 16'b1111000011110000;
     zx = 0; nx = 0; zy = 0; ny = 1; f = 1; no = 1; #10; 
@@ -100,6 +139,11 @@ module my_alu_test;
     x = 16'b1010101010101010; y = 16'b1111000011110000;
     zx = 0; nx = 0; zy = 0; ny = 0; f = 0; no = 0; #10; 
     expected_out = 16'b1010000010100000; expected_zr = 0; expected_ng = 1; assert_else_error();
+
+    // x & y
+    x = 16'b0001111111100000; y = 16'b0001000000010000;
+    zx = 0; nx = 0; zy = 0; ny = 0; f = 0; no = 0; #10; 
+    expected_out = 16'b0001000000000000; expected_zr = 0; expected_ng = 0; assert_else_error();
 
     // x | y
     x = 16'b1010101010101010; y = 16'b1111000011110000;

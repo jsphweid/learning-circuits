@@ -34,6 +34,13 @@ module my_alu(out, zr, ng, x, y, zx, nx, zy, ny, f, no);
     end
   endgenerate
 
+  // integer ff;
+  // always @(*) begin
+  //   ff = $fopen("output2.txt","a");
+  //   $fwrite(ff,"alu: out %b, zr %b, ng %b, x %b, y %b, zx %b, nx %b, zy %b, ny %b, f %b, no %b\n", out, zr, ng, x, y, zx, nx, zy, ny, f, no);
+  //   $fclose(ff);  
+  // end
+
   // nx, ny
   wire [15:0] nx_out, ny_out, x_post_nx, x_post_ny;
   my_not_16 no01(nx_out, x_post_zx);

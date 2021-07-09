@@ -13,9 +13,9 @@ module my_mux_16_test();
   endtask
 
   initial begin
-    a = 16'b0000001010110010; b = 16'b1100110011001100; sel = 0; #10; 
-      expected = 16'b0000001010110010; assert_else_error();
-    a = 16'b0000001010110010; b = 16'b1100110011001100; sel = 1; #10; 
-      expected = 16'b1100110011001100; assert_else_error();
+    a = 16'b0000001010110010; b = 16'b1100110011001100; sel = 0; #10; expected = 16'b0000001010110010; assert_else_error();
+    a = 16'b0000001010110010; b = 16'b1100110011001100; sel = 1; #10; expected = 16'b1100110011001100; assert_else_error();
+    a = 16'b0000001010110010; b = 16'b0000001010110010; sel = 0; #10; expected = 16'b0000001010110010; assert_else_error();
+    a = 16'b0000001010110010; b = 16'b0000001010110010; sel = 1; #10; expected = 16'b0000001010110010; assert_else_error();
   end
 endmodule
