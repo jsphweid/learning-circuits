@@ -3,6 +3,14 @@ import pytest
 from assembler import Parser, CommandType, assemble
 
 
+def strip_empty_lines(text: str):
+    lines = []
+    for line in text.split("\n"):
+        if line:
+            lines.append(line)
+    return "\n".join(lines)
+
+
 @pytest.mark.parametrize("input_str, expected_output", [
     ("test something", "testsomething"),
     ("", ""),
@@ -142,3 +150,21 @@ def test_compiled_output_without_symbols():
                                         '1111110111001000', '1110101010000111', '1110110000010000', '1110001100001000',
                                         '1110101010000111', '1110110000010000', '1110001100001000', '1110101010000111',
                                         '1111110000010000', '1110001100000001', '1110101010000111'])
+
+
+@pytest.fixture()
+def fill_asm_file():
+    with open("../n2t/04/fill/Fill.asm", "r") as f:
+        contents = f.read()
+    return contents
+
+
+@pytest.fixture()
+def fill_hack_file():
+    with open("../fill.hack", "r") as f:
+        contents = f.read()
+    return strip_empty_lines(contents)
+
+
+def test_assembler_works_against_fill_test(fill_asm_file, fill_hack_file):
+    assert assemble(fill_asm_file) == fill_hack_file
