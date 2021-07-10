@@ -209,8 +209,8 @@ def assemble(code: str) -> str:
                     instructions.append("0" + int_str_to_bin(addr))
                 else:
                     symbol_table.add_entry(symbol, next_unused_ram_address)
-                    next_unused_ram_address += 1
                     instructions.append("0" + int_str_to_bin(str(next_unused_ram_address)))
+                    next_unused_ram_address += 1
             else:
                 instructions.append("0" + int_str_to_bin(command[1:]))
         elif parser.command_type() == CommandType.C_COMMAND:
@@ -221,7 +221,7 @@ def assemble(code: str) -> str:
             instructions.append(instruction)
         elif parser.command_type() == CommandType.L_COMMAND:
             pass
-    return "\n".join(instructions)
+    return "\n".join(instructions) + "\n"
 
 
 if __name__ == '__main__':

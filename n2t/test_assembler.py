@@ -149,22 +149,22 @@ def test_compiled_output_without_symbols():
                                         '0000000000110010', '1110001100000010', '1111110000100000', '1110111010001000',
                                         '1111110111001000', '1110101010000111', '1110110000010000', '1110001100001000',
                                         '1110101010000111', '1110110000010000', '1110001100001000', '1110101010000111',
-                                        '1111110000010000', '1110001100000001', '1110101010000111'])
+                                        '1111110000010000', '1110001100000001', '1110101010000111', ''])
 
 
-@pytest.fixture()
-def fill_asm_file():
-    with open("../n2t/04/fill/Fill.asm", "r") as f:
-        contents = f.read()
-    return contents
+@pytest.mark.parametrize("file, expected_output_file", [
+    ("Add.asm", "Add.hack"),
+    ("Max.asm", "Max.hack"),
+    ("MaxL.asm", "MaxL.hack"),
+    ("Pong.asm", "Pong.hack"),
+    ("PongL.asm", "PongL.hack"),
+    ("Rect.asm", "Rect.hack"),
+    ("RectL.asm", "RectL.hack"),
+])
+def test_it_creates_correct_hack_files(file, expected_output_file):
+    with open(f"06_tests/truth_asm/{file}") as f:
+        code = f.read()
+    with open(f"06_tests/truth_hack/{expected_output_file}") as f:
+        expected_output = f.read()
+    assert assemble(code) == expected_output
 
-
-@pytest.fixture()
-def fill_hack_file():
-    with open("../fill.hack", "r") as f:
-        contents = f.read()
-    return strip_empty_lines(contents)
-
-
-def test_assembler_works_against_fill_test(fill_asm_file, fill_hack_file):
-    assert assemble(fill_asm_file) == fill_hack_file

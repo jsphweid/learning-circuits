@@ -10,3 +10,4 @@ build
 local
 obj_dir
 .idea
+.DS_Store
