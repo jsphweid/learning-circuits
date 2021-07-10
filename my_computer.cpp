@@ -93,10 +93,16 @@ void draw()
 
 int main(int argc, char *args[])
 {
+  string romPath = "";
+
+  if(argc==1) {
+    romPath = "fill.hack";
+  } else {
+    romPath = args[1];
+  }
   top = new Vmy_computer;
-  ifstream rom("fill.hack");
-  // ifstream rom("pong.hack");
-  // ifstream rom("color.hack");
+
+  ifstream rom(romPath);
   assert(rom);
 
   string line;
