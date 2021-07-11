@@ -1,6 +1,6 @@
 import pytest
 
-from assembler import Parser, CommandType, assemble
+from assembler import Parser, AssemblyCommandType, assemble
 
 
 def strip_empty_lines(text: str):
@@ -9,17 +9,6 @@ def strip_empty_lines(text: str):
         if line:
             lines.append(line)
     return "\n".join(lines)
-
-
-@pytest.mark.parametrize("input_str, expected_output", [
-    ("test something", "testsomething"),
-    ("", ""),
-    ("// a comment", ""),
-    ("something // then a comment", "something"),
-    ("something / nop /a/ little/more//nop//", "something/nop/a/little/more")
-])
-def test_line_cleanser(input_str, expected_output):
-    assert Parser.clean_line(input_str) == expected_output
 
 
 def test_parser_has_no_more_commands_if_empty():
@@ -70,11 +59,11 @@ def test_parser_returns_correct_command_type():
 	"""
     parser = Parser(code)
     parser.advance()
-    assert parser.command_type() == CommandType.A_COMMAND
+    assert parser.command_type() == AssemblyCommandType.A_COMMAND
     parser.advance()
-    assert parser.command_type() == CommandType.C_COMMAND
+    assert parser.command_type() == AssemblyCommandType.C_COMMAND
     parser.advance()
-    assert parser.command_type() == CommandType.L_COMMAND
+    assert parser.command_type() == AssemblyCommandType.L_COMMAND
 
 
 def test_parser_returns_correct_symbol():

@@ -2,71 +2,49 @@ import sys
 from typing import List, Optional, Dict
 from enum import Enum
 
+from shared import Command, BaseParser, WhiteSpaceStrategy
 
-class CommandType(Enum):
+
+class AssemblyCommandType(Enum):
     A_COMMAND = 0
     C_COMMAND = 1
     L_COMMAND = 2
     INVALID = 3
 
 
-Command = str
-
-
-class Parser:
-    _raw_file_contents: str
+class Parser(BaseParser):
+    _commands = List[Command]
 
     def __init__(self, raw_file_contents: str) -> None:
-        self._raw_file_contents = raw_file_contents
-        self._commands = self.parse_instructions()
-        self._current_command_index = -1
+        super().__init__(raw_file_contents, WhiteSpaceStrategy.ELIMINATE_ALL)
 
-    def parse_instructions(self) -> List[Command]:
-        ret = []
-        for line in self._raw_file_contents.split("\n"):
-            cleaned_line = self.clean_line(line)
-            if cleaned_line:
-                ret.append(cleaned_line)
-        return ret
-
-    def has_more_commands(self):
-        return self._current_command_index + 1 < len(self._commands)
-
-    def advance(self) -> Command:
-        self._current_command_index += 1
-        return self._commands[self._current_command_index]
-
-    def current_command(self) -> Optional[Command]:
-        return self._commands[self._current_command_index] if \
-            0 <= self._current_command_index < len(self._commands) else None
-
-    def command_type(self) -> Optional[CommandType]:
+    def command_type(self) -> Optional[AssemblyCommandType]:
         current = self.current_command()
         if current:
             if current[0] == "@" and len(current) > 1:
-                return CommandType.A_COMMAND
+                return AssemblyCommandType.A_COMMAND
             elif current[0] == "(" and current[-1] == ")":
-                return CommandType.L_COMMAND
+                return AssemblyCommandType.L_COMMAND
             else:
-                return CommandType.C_COMMAND
+                return AssemblyCommandType.C_COMMAND
 
     def symbol(self) -> Optional[str]:
         current = self.current_command()
         if current:
-            if self.command_type() == CommandType.A_COMMAND:
+            if self.command_type() == AssemblyCommandType.A_COMMAND:
                 return current[1:]
-            elif self.command_type() == CommandType.L_COMMAND:
+            elif self.command_type() == AssemblyCommandType.L_COMMAND:
                 return current.replace("(", "").replace(")", "")
 
     def dest(self) -> Optional[str]:
         current = self.current_command()
-        if self.command_type() == CommandType.C_COMMAND \
+        if self.command_type() == AssemblyCommandType.C_COMMAND \
                 and "=" in current:
             return current.split("=")[0]
 
     def comp(self) -> Optional[str]:
         current = self.current_command()
-        if self.command_type() == CommandType.C_COMMAND:
+        if self.command_type() == AssemblyCommandType.C_COMMAND:
             if "=" in current:
                 return current.split("=")[1]
             elif ";" in current:
@@ -74,13 +52,9 @@ class Parser:
 
     def jump(self) -> Optional[str]:
         current = self.current_command()
-        if self.command_type() == CommandType.C_COMMAND \
+        if self.command_type() == AssemblyCommandType.C_COMMAND \
                 and ";" in current:
             return current.split(";")[1]
-
-    @staticmethod
-    def clean_line(line: str):
-        return line.split("//")[0].replace(" ", "").replace("\t", "")
 
     def command_is_a_and_symbol(self):
         try:
@@ -90,6 +64,7 @@ class Parser:
             return False
         except:
             return True
+
 
 class CodeModule:
     @staticmethod
@@ -190,9 +165,9 @@ def assemble(code: str) -> str:
     current_rom_address = 0
     while parser.has_more_commands():
         parser.advance()
-        if parser.command_type() == CommandType.L_COMMAND:
+        if parser.command_type() == AssemblyCommandType.L_COMMAND:
             symbol_table.add_entry(parser.symbol(), current_rom_address)
-        if parser.command_type() == CommandType.A_COMMAND or parser.command_type() == CommandType.C_COMMAND:
+        if parser.command_type() == AssemblyCommandType.A_COMMAND or parser.command_type() == AssemblyCommandType.C_COMMAND:
             current_rom_address += 1
 
     # second pass - finalize instructions
@@ -201,7 +176,7 @@ def assemble(code: str) -> str:
     next_unused_ram_address = 16
     while parser.has_more_commands():
         command = parser.advance()
-        if parser.command_type() == CommandType.A_COMMAND:
+        if parser.command_type() == AssemblyCommandType.A_COMMAND:
             if parser.command_is_a_and_symbol():
                 symbol = parser.symbol()
                 if symbol_table.contains(symbol):
@@ -213,13 +188,13 @@ def assemble(code: str) -> str:
                     next_unused_ram_address += 1
             else:
                 instructions.append("0" + int_str_to_bin(command[1:]))
-        elif parser.command_type() == CommandType.C_COMMAND:
+        elif parser.command_type() == AssemblyCommandType.C_COMMAND:
             comp = CodeModule.comp(parser.comp())
             dest = CodeModule.dest(parser.dest())
             jump = CodeModule.jump(parser.jump())
             instruction = "111" + comp + dest + jump
             instructions.append(instruction)
-        elif parser.command_type() == CommandType.L_COMMAND:
+        elif parser.command_type() == AssemblyCommandType.L_COMMAND:
             pass
     return "\n".join(instructions) + "\n"
 
@@ -232,7 +207,7 @@ if __name__ == '__main__':
         with open(filepath, "r") as f:
             raw_file_contents = f.read()
     except Exception:
-        raise Exception("Must have 1 valid filepath argument")
+        raise Exception("Must have 2 valid filepath arguments")
 
     output = assemble(raw_file_contents)
 
