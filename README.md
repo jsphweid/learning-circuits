@@ -2,7 +2,13 @@
 
 My friend Brian suggested this course as a way to learn a computer really really works. I bought the ebook and started running through it and basically got really into it. I created this repo to house all the things I built along the course.
 
-# Setup and run
+# virtual hardware
+
+I wrote my hardware modules in SystemVerilog and used Verilator to compile it to a C++ program with a lot of help from https://github.com/jopdorp/nand2tetris-verilog
+
+If you have iverilog and verilator installed, you should just be able to uncomment out the lines in `run.sh` and then run it.
+
+# software
 
 ### tests
 
