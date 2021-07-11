@@ -1,5 +1,5 @@
 import pytest
-from subprocess import STDOUT, check_output, CalledProcessError
+from subprocess import STDOUT, check_output
 
 from n2t.translator import Parser, VMCommandType, file_strings_to_asm_commands, translator
 
@@ -46,7 +46,10 @@ def test_basic_stack_arithmetic_works():
 
 @pytest.mark.parametrize("test_folder", [
     "SimpleAdd",
-    # "StackTest"
+    "StackTest",
+    "BasicTest",
+    # "PointerTest",
+    # "StaticTest",
 ])
 def test_it_passes_translation_tests(test_folder):
     with open(f"n2t/07_tests/{test_folder}/{test_folder}.vm") as f:
@@ -62,3 +65,41 @@ def test_it_passes_translation_tests(test_folder):
     if "End of script - Comparison ended successfully" not in output:
         print('output', output)
         raise Exception(f"{test_folder} script didn't succeed")
+
+
+@pytest.mark.parametrize("segment, reg_name", [
+    ("local", "LCL"),
+    ("this", "THIS"),
+    ("that", "THAT"),
+    ("argument", "ARG"),
+])
+def test_it_pushes_from_segment(segment, reg_name):
+    vm_command = f"push {segment} 5"
+    results = file_strings_to_asm_commands([vm_command])
+    assert results == ['@5', 'D=A', f'@{reg_name}', 'A=M', 'A=A+D', 'D=M', '@SP', 'A=M', 'M=D', '@SP', 'M=M+1']
+
+
+def test_it_pushes_from_temp():
+    vm_command = f"push temp 5"
+    results = file_strings_to_asm_commands([vm_command])
+    assert results == ['@5', 'D=A', f'@R5', 'A=A+D', 'D=M', '@SP', 'A=M', 'M=D', '@SP', 'M=M+1']
+
+
+@pytest.mark.parametrize("segment, reg_name", [
+    ("local", "LCL"),
+    ("this", "THIS"),
+    ("that", "THAT"),
+    ("argument", "ARG"),
+])
+def test_it_pops_to_segment(segment, reg_name):
+    vm_command = f"pop {segment} 4"
+    results = file_strings_to_asm_commands([vm_command])
+    assert results == ['@SP', 'M=M-1', 'A=M', 'D=M', '@R13', 'M=D', '@4', 'D=A', f'@{reg_name}', 'A=M', 'A=A+D', 'D=A',
+                       '@R14', 'M=D', '@R13', 'D=M', '@R14', 'A=M', 'M=D']
+
+
+def test_it_pops_to_temp():
+    vm_command = f"pop temp 4"
+    results = file_strings_to_asm_commands([vm_command])
+    assert results == ['@SP', 'M=M-1', 'A=M', 'D=M', '@R13', 'M=D', '@4', 'D=A', f'@R5', 'A=A+D', 'D=A',
+                       '@R14', 'M=D', '@R13', 'D=M', '@R14', 'A=M', 'M=D']
