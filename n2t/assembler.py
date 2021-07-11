@@ -2,7 +2,7 @@ import sys
 from typing import List, Optional, Dict
 from enum import Enum
 
-from shared import Command, BaseParser, WhiteSpaceStrategy
+from n2t.shared import Command, BaseParser, WhiteSpaceStrategy
 
 
 class AssemblyCommandType(Enum):

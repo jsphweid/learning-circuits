@@ -1,6 +1,6 @@
 import pytest
 
-from shared import BaseParser, WhiteSpaceStrategy
+from n2t.shared import BaseParser, WhiteSpaceStrategy
 
 
 @pytest.mark.parametrize("input_str, expected_output", [

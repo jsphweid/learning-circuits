@@ -3,7 +3,7 @@ import sys
 from enum import Enum
 from typing import List, Optional
 
-from shared import BaseParser, WhiteSpaceStrategy
+from n2t.shared import BaseParser, WhiteSpaceStrategy
 
 VM_EXTENSION = ".vm"
 ASM_EXTENSION = ".asm"

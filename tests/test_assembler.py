@@ -1,6 +1,6 @@
 import pytest
 
-from assembler import Parser, AssemblyCommandType, assemble
+from n2t.assembler import Parser, AssemblyCommandType, assemble
 
 
 def strip_empty_lines(text: str):
@@ -151,9 +151,8 @@ def test_compiled_output_without_symbols():
     ("RectL.asm", "RectL.hack"),
 ])
 def test_it_creates_correct_hack_files(file, expected_output_file):
-    with open(f"06_tests/truth_asm/{file}") as f:
+    with open(f"n2t/06_tests/truth_asm/{file}") as f:
         code = f.read()
-    with open(f"06_tests/truth_hack/{expected_output_file}") as f:
+    with open(f"n2t/06_tests/truth_hack/{expected_output_file}") as f:
         expected_output = f.read()
     assert assemble(code) == expected_output
-

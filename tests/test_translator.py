@@ -1,7 +1,7 @@
 import pytest
 from subprocess import STDOUT, check_output, CalledProcessError
 
-from translator import Parser, VMCommandType, file_strings_to_asm_commands, translator
+from n2t.translator import Parser, VMCommandType, file_strings_to_asm_commands, translator
 
 
 def test_parser():
@@ -48,14 +48,15 @@ def test_basic_stack_arithmetic_works():
     "SimpleAdd",
     # "StackTest"
 ])
-def test_it_creates_correct_hack_files(test_folder):
-    with open(f"07_tests/{test_folder}/{test_folder}.vm") as f:
+def test_it_passes_translation_tests(test_folder):
+    with open(f"n2t/07_tests/{test_folder}/{test_folder}.vm") as f:
         code = f.read()
     output = translator([code])
-    with open(f"07_tests/{test_folder}/{test_folder}.asm", "w") as f:
+    with open(f"n2t/07_tests/{test_folder}/{test_folder}.asm", "w") as f:
         f.write(output)
 
-    cmd = f"../local/n2t/tools/CPUEmulator.sh ../n2t/07_tests/{test_folder}/{test_folder}.tst"
+    cmd = f"local/n2t/tools/CPUEmulator.sh n2t/07_tests/{test_folder}/{test_folder}.tst"
+    print('cmd', cmd)
     output = check_output(cmd, shell=True, stderr=STDOUT)
     output = str(output)
     if "End of script - Comparison ended successfully" not in output:

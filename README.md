@@ -1,28 +1,17 @@
-# learning circuits
+# nand2tetris
 
-This is just a repo that catalogs basic experiments in making simple emulated circuits in python and verilog. It is strictly educational for me and has little to no value outside of that.
+My friend Brian suggested this course as a way to learn a computer really really works. I bought the ebook and started running through it and basically got really into it. I created this repo to house all the things I built along the course.
 
-This is also a repo where I put a lot of my creations from doing the nand2tetris (n2t) course.
+# Setup and run
 
-# TODOs
-- change title of repo to be more accurate
+### tests
 
-# n2t
+Prep:
+1. put projects/tools from n2t in a dir called `local/n2t` at the root of the directory so it looks like `local/n2t/projects/` and `local/n2t/tools`
+2. make the bash tools executable with `chmod +x local/n2t/tools/CPUEmulator.sh` for example
 
-Put projects/tools from n2t in a dir called `local/n2t` at the root of the directory so it looks like `local/n2t/projects/` and `local/n2t/tools` 
+Then run:
+- `pip install -r requirements.txt`
+- `PYTHONPATH=. pytest tests`
 
-### Running python tests
-
-```bash
-pytest n2t/test_verilog.py
-```
-
-
-# Non-n2t stuff
-
-### python
-
-To run python tests, you need pytest installed in your environment then run:
-```bash
-PYTHONPATH=. pytest tests/
-```
+NOTE: make sure you run it from the root directory (working directory is the root folder)

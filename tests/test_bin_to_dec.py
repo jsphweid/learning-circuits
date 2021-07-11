@@ -2,6 +2,7 @@ import pytest
 
 from fun.bin_to_dec import bin_to_dec
 
+
 @pytest.mark.parametrize('bin, dec', [
     ("1011", 11),
     ("1", 1),
