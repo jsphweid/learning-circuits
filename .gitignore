@@ -6,3 +6,9 @@ __pycache__
 pyvenv.cfg
 .vscode
 .pytest_cache
+build
+local
+obj_dir
+.idea
+.DS_Store
+n2t/07_tests/**/*.asm

@@ -2,14 +2,23 @@
 
 This is just a repo that catalogs basic experiments in making simple emulated circuits in python and verilog. It is strictly educational for me and has little to no value outside of that.
 
-# running
+This is also a repo where I put a lot of my creations from doing the nand2tetris (n2t) course.
 
-### verilog
+# TODOs
+- change title of repo to be more accurate
 
-To compile verilog modules and tests, just run:
+# n2t
+
+Put projects/tools from n2t in a dir called `local/n2t` at the root of the directory so it looks like `local/n2t/projects/` and `local/n2t/tools` 
+
+### Running python tests
+
 ```bash
-run-verilog.sh
+pytest n2t/test_verilog.py
 ```
+
+
+# Non-n2t stuff
 
 ### python
 

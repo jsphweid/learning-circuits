@@ -1,0 +1,22 @@
+`include "my_and_16.sv"
+
+module my_and_16_test();
+  reg [15:0] a, b;
+  reg [15:0] expected;
+  wire [15:0] out;
+
+  my_and_16 a1(out, a, b);
+
+  task assert_else_error;
+    assert (expected == out) else $error("a was %b, b was %b, out was %b but expected %b\n", a, b, out, expected);
+  endtask
+
+  initial begin
+    a = 16'b0000000000000000; b = 16'b0000000000000000; #10; 
+      expected = 16'b0000000000000000; assert_else_error();
+    a = 16'b1110000000000000; b = 16'b1010000000000000; #10; 
+      expected = 16'b1010000000000000; assert_else_error();
+    a = 16'b0000000000001100; b = 16'b0000000000000100; #10; 
+      expected = 16'b0000000000000100; assert_else_error();
+  end
+endmodule
