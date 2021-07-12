@@ -48,27 +48,30 @@ def test_basic_stack_arithmetic_works():
     assert file_strings_to_asm_commands([code_to_misc_file(code)]) == expected_output
 
 
-@pytest.mark.parametrize("test_folder", [
-    "SimpleAdd",
-    "StackTest",
-    "BasicTest",
-    "PointerTest",
-    "StaticTest",
+@pytest.mark.parametrize("test_path", [
+    "07_tests/SimpleAdd/SimpleAdd",
+    "07_tests/StackTest/StackTest",
+    "07_tests/BasicTest/BasicTest",
+    "07_tests/PointerTest/PointerTest",
+    "07_tests/StaticTest/StaticTest",
+    "08_tests/BasicLoop/BasicLoop",
+    "08_tests/FibonacciSeries/FibonacciSeries",
+    # "08_tests/SimpleFunction/SimpleFunction"
 ])
-def test_it_passes_translation_tests(test_folder):
-    with open(f"n2t/07_tests/{test_folder}/{test_folder}.vm") as f:
+def test_it_passes_translation_tests(test_path):
+    with open(f"n2t/{test_path}.vm") as f:
         code = f.read()
     output = translator([code_to_misc_file(code)])
-    with open(f"n2t/07_tests/{test_folder}/{test_folder}.asm", "w") as f:
+    with open(f"n2t/{test_path}.asm", "w") as f:
         f.write(output)
 
-    cmd = f"local/n2t/tools/CPUEmulator.sh n2t/07_tests/{test_folder}/{test_folder}.tst"
+    cmd = f"local/n2t/tools/CPUEmulator.sh n2t/{test_path}.tst"
     print('cmd', cmd)
     output = check_output(cmd, shell=True, stderr=STDOUT)
     output = str(output)
     if "End of script - Comparison ended successfully" not in output:
         print('output', output)
-        raise Exception(f"{test_folder} script didn't succeed")
+        raise Exception(f"{test_path} script didn't succeed")
 
 
 @pytest.mark.parametrize("segment, reg_name", [

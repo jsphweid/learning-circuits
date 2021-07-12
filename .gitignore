@@ -12,3 +12,4 @@ obj_dir
 .idea
 .DS_Store
 n2t/07_tests/**/*.asm
+n2t/08_tests/**/*.asm

@@ -28,6 +28,7 @@ class VMCommandType(Enum):
     FUNCTION = 6
     RETURN = 7
     CALL = 8
+    IF_GOTO = 9
 
 
 class Parser(BaseParser):
@@ -50,6 +51,7 @@ class Parser(BaseParser):
                 "push": VMCommandType.PUSH,
                 "pop": VMCommandType.POP,
                 "label": VMCommandType.LABEL,
+                "if-goto": VMCommandType.IF_GOTO,
                 "goto": VMCommandType.GOTO,
                 "return": VMCommandType.RETURN,
                 "function": VMCommandType.FUNCTION,
@@ -133,12 +135,11 @@ class CodeWriter:
                CodeWriter._increment_stack_pointer
 
     def _goto_segment(self, segment: str, offset=0) -> List[str]:
-        mapping = {"this": "THIS", "that": "THAT", "local": "LCL", "argument": "ARG", "temp": "R5", "pointer": "R3", "static": "16"}
+        mapping = {"this": "THIS", "that": "THAT", "local": "LCL", "argument": "ARG", "temp": "R5", "pointer": "R3",
+                   "static": "16"}
         ref = mapping.get(segment, segment)  # if you want to use R12 or whatever you can bypass the mapping
         goto_segment = [f"@{ref}"] if segment == "temp" or segment == "pointer" else [f"@{ref}", "A=M"]
         goto_segment = [f"@{self._file.filename_extensionless}.{offset}"] if segment == "static" else goto_segment
-
-        # TODO: don't need to store this if direct ref (like static...?)
         store_offset = [f"@{offset}", "D=A"] if offset else []
         add_offset = ["A=A+D"] if offset else []
         return store_offset + goto_segment + add_offset
@@ -185,6 +186,30 @@ class CodeWriter:
         else:
             raise NotImplementedError
 
+    @staticmethod
+    def write_init() -> List[str]:
+        # TODO: vm initialization/bootstrap... gets placed at beginning of the output
+        return []
+
+    def write_label(self, label: str) -> List[str]:
+        return [f"({label})"]
+
+    def write_goto(self, label: str) -> List[str]:
+        return [f"@{label}", "0;JMP"]
+
+    def write_if_goto(self, label: str) -> List[str]:
+        return self._decrement_stack_pointer + ["A=M", "D=M", f"@{label}", "D;JNE"]
+
+    def write_call(self):
+        pass
+
+    def write_return(self) -> List[str]:
+        return []
+
+    def write_function(self, name, num_locals: int) -> List[str]:
+        # TODO: this is completely broken
+        return [f"({name})"] + self._increment_stack_pointer * num_locals
+
 
 def file_strings_to_asm_commands(files: List[File]) -> List[str]:
     if len(files) > 1 or not len(files):
@@ -196,16 +221,27 @@ def file_strings_to_asm_commands(files: List[File]) -> List[str]:
         command = parser.advance()
         if parser.command_type() == VMCommandType.PUSH:
             asm_commands += code_writer.write_push_pop(VMCommandType.PUSH, parser.arg1(), parser.arg2())
-        if parser.command_type() == VMCommandType.POP:
+        elif parser.command_type() == VMCommandType.POP:
             asm_commands += code_writer.write_push_pop(VMCommandType.POP, parser.arg1(), parser.arg2())
-        if parser.command_type() == VMCommandType.ARITHMETIC:
+        elif parser.command_type() == VMCommandType.ARITHMETIC:
             asm_commands += code_writer.write_arithmetic(command)
+        elif parser.command_type() == VMCommandType.FUNCTION:
+            asm_commands += code_writer.write_function(parser.arg1(), parser.arg2())
+        elif parser.command_type() == VMCommandType.RETURN:
+            asm_commands += code_writer.write_return()
+        elif parser.command_type() == VMCommandType.GOTO:
+            asm_commands += code_writer.write_goto(parser.arg1())
+        elif parser.command_type() == VMCommandType.IF_GOTO:
+            asm_commands += code_writer.write_if_goto(parser.arg1())
+        elif parser.command_type() == VMCommandType.LABEL:
+            asm_commands += code_writer.write_label(parser.arg1())
 
     return asm_commands
 
 
 def translator(files: List[File]) -> str:
-    asm_commands = file_strings_to_asm_commands(files)
+    init_commands = CodeWriter.write_init()
+    asm_commands = init_commands + file_strings_to_asm_commands(files)
     return "\n".join(asm_commands) + "\n"
 
 
