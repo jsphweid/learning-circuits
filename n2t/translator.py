@@ -1,12 +1,21 @@
 import os
 import sys
 from enum import Enum
-from typing import List, Optional
+from typing import List, Optional, NamedTuple
 
 from n2t.shared import BaseParser, WhiteSpaceStrategy
 
 VM_EXTENSION = ".vm"
 ASM_EXTENSION = ".asm"
+
+
+class File(NamedTuple):
+    filename: str
+    contents: str
+
+    @property
+    def filename_extensionless(self):
+        return "".join(self.filename.split(".")[0:-1])
 
 
 class VMCommandType(Enum):
@@ -75,7 +84,8 @@ class Parser(BaseParser):
 
 
 class CodeWriter:
-    def __init__(self):
+    def __init__(self, file: File):
+        self._file = file
         self._jump_count = 0
 
     _increment_stack_pointer = ["@SP", "M=M+1"]
@@ -123,9 +133,12 @@ class CodeWriter:
                CodeWriter._increment_stack_pointer
 
     def _goto_segment(self, segment: str, offset=0) -> List[str]:
-        mapping = {"this": "THIS", "that": "THAT", "local": "LCL", "argument": "ARG", "temp": "R5", "pointer": "R3"}
+        mapping = {"this": "THIS", "that": "THAT", "local": "LCL", "argument": "ARG", "temp": "R5", "pointer": "R3", "static": "16"}
         ref = mapping.get(segment, segment)  # if you want to use R12 or whatever you can bypass the mapping
         goto_segment = [f"@{ref}"] if segment == "temp" or segment == "pointer" else [f"@{ref}", "A=M"]
+        goto_segment = [f"@{self._file.filename_extensionless}.{offset}"] if segment == "static" else goto_segment
+
+        # TODO: don't need to store this if direct ref (like static...?)
         store_offset = [f"@{offset}", "D=A"] if offset else []
         add_offset = ["A=A+D"] if offset else []
         return store_offset + goto_segment + add_offset
@@ -156,13 +169,13 @@ class CodeWriter:
         if command_type == VMCommandType.PUSH:
             if arg1 == "constant":
                 return [f"@{arg2}", "D=A", "@SP", "A=M", "M=D"] + CodeWriter._increment_stack_pointer
-            elif arg1 in {"this", "that", "local", "argument", "temp", "pointer"}:
+            elif arg1 in {"this", "that", "local", "argument", "temp", "pointer", "static"}:
                 return self._goto_segment(arg1, arg2) + self._store_value_in_d + self._goto_stack + \
                        self._store_d_at_address + self._increment_stack_pointer
             else:
                 raise NotImplementedError
         elif command_type == VMCommandType.POP:
-            if arg1 in {"this", "that", "local", "argument", "temp", "pointer"}:
+            if arg1 in {"this", "that", "local", "argument", "temp", "pointer", "static"}:
                 return self._decrement_stack_pointer + ["A=M"] + self._store_value_in_r("R13") + self._goto_segment(
                     arg1, arg2) + \
                        self._store_value_in_r("R14", is_addr=True) + self._load_d_from_r("R13") + \
@@ -173,11 +186,11 @@ class CodeWriter:
             raise NotImplementedError
 
 
-def file_strings_to_asm_commands(files: List[str]) -> List[str]:
+def file_strings_to_asm_commands(files: List[File]) -> List[str]:
     if len(files) > 1 or not len(files):
         raise NotImplementedError
-    parser = Parser(files[0])
-    code_writer = CodeWriter()
+    parser = Parser(files[0].contents)
+    code_writer = CodeWriter(files[0])
     asm_commands = []
     while parser.has_more_commands():
         command = parser.advance()
@@ -191,7 +204,7 @@ def file_strings_to_asm_commands(files: List[str]) -> List[str]:
     return asm_commands
 
 
-def translator(files: List[str]) -> str:
+def translator(files: List[File]) -> str:
     asm_commands = file_strings_to_asm_commands(files)
     return "\n".join(asm_commands) + "\n"
 
@@ -202,17 +215,19 @@ def read_file_to_str(path: str) -> str:
     return contents
 
 
-def get_documents_from_path(path: str) -> List[str]:
-    ret = []
+def get_documents_from_path(path: str) -> List[File]:
+    ret: List[File] = []
     # if path is dir, read all vm files
     # if path is file, then assume it's a single vm file
     if os.path.isdir(path):
         # for now, just get files that are direct children of the dir
-        for file in os.listdir(path):
-            if VM_EXTENSION in file and file[-3:] == VM_EXTENSION:
-                ret.append(read_file_to_str(f"{path}/{file}"))
+        for filename in os.listdir(path):
+            if VM_EXTENSION in filename and filename[-3:] == VM_EXTENSION:
+                path = f"{path}/{filename}"
+                ret.append(File(filename, read_file_to_str(path)))
     else:
-        ret.append(read_file_to_str(path))
+        filename = path.split("/")[-1]
+        ret.append(File(filename, read_file_to_str(path)))
     return ret
 
 

@@ -1,7 +1,11 @@
 import pytest
 from subprocess import STDOUT, check_output
 
-from n2t.translator import Parser, VMCommandType, file_strings_to_asm_commands, translator
+from n2t.translator import Parser, VMCommandType, file_strings_to_asm_commands, translator, File
+
+
+def code_to_misc_file(code: str) -> File:
+    return File("anything.txt", code)
 
 
 def test_parser():
@@ -41,7 +45,7 @@ def test_basic_stack_arithmetic_works():
     """
     expected_output = ['@7', 'D=A', '@SP', 'A=M', 'M=D', '@SP', 'M=M+1', '@8', 'D=A', '@SP', 'A=M', 'M=D', '@SP',
                        'M=M+1', '@SP', 'M=M-1', 'A=M', 'D=M', '@SP', 'M=M-1', 'A=M', 'M=M+D', '@SP', 'M=M+1']
-    assert file_strings_to_asm_commands([code]) == expected_output
+    assert file_strings_to_asm_commands([code_to_misc_file(code)]) == expected_output
 
 
 @pytest.mark.parametrize("test_folder", [
@@ -49,12 +53,12 @@ def test_basic_stack_arithmetic_works():
     "StackTest",
     "BasicTest",
     "PointerTest",
-    # "StaticTest",
+    "StaticTest",
 ])
 def test_it_passes_translation_tests(test_folder):
     with open(f"n2t/07_tests/{test_folder}/{test_folder}.vm") as f:
         code = f.read()
-    output = translator([code])
+    output = translator([code_to_misc_file(code)])
     with open(f"n2t/07_tests/{test_folder}/{test_folder}.asm", "w") as f:
         f.write(output)
 
@@ -75,13 +79,13 @@ def test_it_passes_translation_tests(test_folder):
 ])
 def test_it_pushes_from_segment(segment, reg_name):
     vm_command = f"push {segment} 5"
-    results = file_strings_to_asm_commands([vm_command])
+    results = file_strings_to_asm_commands([code_to_misc_file(vm_command)])
     assert results == ['@5', 'D=A', f'@{reg_name}', 'A=M', 'A=A+D', 'D=M', '@SP', 'A=M', 'M=D', '@SP', 'M=M+1']
 
 
 def test_it_pushes_from_temp():
     vm_command = f"push temp 5"
-    results = file_strings_to_asm_commands([vm_command])
+    results = file_strings_to_asm_commands([code_to_misc_file(vm_command)])
     assert results == ['@5', 'D=A', f'@R5', 'A=A+D', 'D=M', '@SP', 'A=M', 'M=D', '@SP', 'M=M+1']
 
 
@@ -93,13 +97,13 @@ def test_it_pushes_from_temp():
 ])
 def test_it_pops_to_segment(segment, reg_name):
     vm_command = f"pop {segment} 4"
-    results = file_strings_to_asm_commands([vm_command])
+    results = file_strings_to_asm_commands([code_to_misc_file(vm_command)])
     assert results == ['@SP', 'M=M-1', 'A=M', 'D=M', '@R13', 'M=D', '@4', 'D=A', f'@{reg_name}', 'A=M', 'A=A+D', 'D=A',
                        '@R14', 'M=D', '@R13', 'D=M', '@R14', 'A=M', 'M=D']
 
 
 def test_it_pops_to_temp():
     vm_command = f"pop temp 4"
-    results = file_strings_to_asm_commands([vm_command])
+    results = file_strings_to_asm_commands([code_to_misc_file(vm_command)])
     assert results == ['@SP', 'M=M-1', 'A=M', 'D=M', '@R13', 'M=D', '@4', 'D=A', f'@R5', 'A=A+D', 'D=A',
                        '@R14', 'M=D', '@R13', 'D=M', '@R14', 'A=M', 'M=D']
