@@ -48,7 +48,7 @@ def test_basic_stack_arithmetic_works():
     "SimpleAdd",
     "StackTest",
     "BasicTest",
-    # "PointerTest",
+    "PointerTest",
     # "StaticTest",
 ])
 def test_it_passes_translation_tests(test_folder):

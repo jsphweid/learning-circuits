@@ -123,9 +123,9 @@ class CodeWriter:
                CodeWriter._increment_stack_pointer
 
     def _goto_segment(self, segment: str, offset=0) -> List[str]:
-        mapping = {"this": "THIS", "that": "THAT", "local": "LCL", "argument": "ARG", "temp": "R5"}
+        mapping = {"this": "THIS", "that": "THAT", "local": "LCL", "argument": "ARG", "temp": "R5", "pointer": "R3"}
         ref = mapping.get(segment, segment)  # if you want to use R12 or whatever you can bypass the mapping
-        goto_segment = [f"@{ref}"] if segment == "temp" else [f"@{ref}", "A=M"]
+        goto_segment = [f"@{ref}"] if segment == "temp" or segment == "pointer" else [f"@{ref}", "A=M"]
         store_offset = [f"@{offset}", "D=A"] if offset else []
         add_offset = ["A=A+D"] if offset else []
         return store_offset + goto_segment + add_offset
@@ -156,13 +156,13 @@ class CodeWriter:
         if command_type == VMCommandType.PUSH:
             if arg1 == "constant":
                 return [f"@{arg2}", "D=A", "@SP", "A=M", "M=D"] + CodeWriter._increment_stack_pointer
-            elif arg1 in {"this", "that", "local", "argument", "temp"}:
+            elif arg1 in {"this", "that", "local", "argument", "temp", "pointer"}:
                 return self._goto_segment(arg1, arg2) + self._store_value_in_d + self._goto_stack + \
                        self._store_d_at_address + self._increment_stack_pointer
             else:
                 raise NotImplementedError
         elif command_type == VMCommandType.POP:
-            if arg1 in {"this", "that", "local", "argument", "temp"}:
+            if arg1 in {"this", "that", "local", "argument", "temp", "pointer"}:
                 return self._decrement_stack_pointer + ["A=M"] + self._store_value_in_r("R13") + self._goto_segment(
                     arg1, arg2) + \
                        self._store_value_in_r("R14", is_addr=True) + self._load_d_from_r("R13") + \
