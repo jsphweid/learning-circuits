@@ -56,7 +56,7 @@ def test_basic_stack_arithmetic_works():
     "07_tests/StaticTest/StaticTest",
     "08_tests/BasicLoop/BasicLoop",
     "08_tests/FibonacciSeries/FibonacciSeries",
-    # "08_tests/SimpleFunction/SimpleFunction"
+    "08_tests/SimpleFunction/SimpleFunction"
 ])
 def test_it_passes_translation_tests(test_path):
     with open(f"n2t/{test_path}.vm") as f:

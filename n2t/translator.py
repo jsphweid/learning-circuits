@@ -204,7 +204,16 @@ class CodeWriter:
         pass
 
     def write_return(self) -> List[str]:
-        return []
+        copy_lcl = ["@LCL", "D=M", "@R13", "M=D"]
+        copy_return_addr = ["@5", "D=A", "@R13", "D=M-D", "@R14", "M=D"]
+        reposition_return_value = self._decrement_stack_pointer + ["@SP", "A=M", "D=M", "@ARG", "A=M", "M=D"]
+        restore_sp = ["@ARG", "D=M", "@SP", "M=D"] + self._increment_stack_pointer
+        restore_that = ["@1", "D=A", "@R13", "A=M-D", "D=M", "@THAT", "M=D"]
+        restore_this = ["@2", "D=A", "@R13", "A=M-D", "D=M", "@THIS", "M=D"]
+        restore_arg = ["@3", "D=A", "@R13", "A=M-D", "D=M", "@ARG", "M=D"]
+        restore_lcl = ["@4", "D=A", "@R13", "A=M-D", "D=M", "@LCL", "M=D"]
+        restore_things = restore_that + restore_this + restore_arg + restore_lcl
+        return copy_lcl + copy_return_addr + reposition_return_value + restore_sp + restore_things
 
     def write_function(self, name, num_locals: int) -> List[str]:
         # TODO: this is completely broken
