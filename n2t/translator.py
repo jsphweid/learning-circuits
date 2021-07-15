@@ -264,8 +264,8 @@ class CodeWriter:
 
     @annotate
     def write_function(self, name, num_locals: int) -> List[str]:
-        set_to_zero_and_increment = ["M=0"] + self._increment_stack_pointer
-        return [f"({name})"] + ["@SP", "A=M"] + (set_to_zero_and_increment * num_locals)
+        set_zero_and_increment = ["@SP", "A=M", "M=0"] + self._increment_stack_pointer
+        return [f"({name})"] + (set_zero_and_increment * num_locals)
 
 
 def file_strings_to_asm_commands(files: List[File], write_init=True) -> List[str]:
@@ -299,7 +299,7 @@ def file_strings_to_asm_commands(files: List[File], write_init=True) -> List[str
             elif parser.command_type() == VMCommandType.CALL:
                 asm_commands += code_writer.write_call(parser.arg1(), parser.arg2())
     global outputs
-    # print('----outputs', outputs)
+    print('----outputs', outputs)
     return asm_commands
 
 

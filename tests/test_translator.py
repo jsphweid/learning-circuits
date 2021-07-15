@@ -58,6 +58,7 @@ def test_basic_stack_arithmetic_works():
     ["08_tests", "BasicLoop", False],
     ["08_tests", "FibonacciSeries", False],
     ["08_tests", "SimpleFunction", True],
+    ["08_tests", "NestedCall", True],
     ["08_tests", "FibonacciElement", True],
 ])
 def test_it_passes_translation_tests(base_folder, test_name, write_init):
