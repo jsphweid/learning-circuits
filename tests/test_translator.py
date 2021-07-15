@@ -49,25 +49,25 @@ def test_basic_stack_arithmetic_works():
     assert file_strings_to_asm_commands([code_to_misc_file(code)], write_init=False) == expected_output
 
 
-@pytest.mark.parametrize("base_folder, test_name", [
-    ["07_tests", "SimpleAdd"],
-    ["07_tests", "StackTest"],
-    ["07_tests", "BasicTest"],
-    ["07_tests", "PointerTest"],
-    ["07_tests", "StaticTest"],
-    ["08_tests", "BasicLoop"],
-    ["08_tests", "FibonacciSeries"],
-    ["08_tests", "SimpleFunction"],
-    ["08_tests", "FibonacciElement"],
+@pytest.mark.parametrize("base_folder, test_name, write_init", [
+    ["07_tests", "SimpleAdd", False],
+    ["07_tests", "StackTest", False],
+    ["07_tests", "BasicTest", False],
+    ["07_tests", "PointerTest", False],
+    ["07_tests", "StaticTest", False],
+    ["08_tests", "BasicLoop", False],
+    ["08_tests", "FibonacciSeries", False],
+    ["08_tests", "SimpleFunction", True],
+    ["08_tests", "FibonacciElement", True],
 ])
-def test_it_passes_translation_tests(base_folder, test_name):
+def test_it_passes_translation_tests(base_folder, test_name, write_init):
     code_files = []
     for file in glob.glob(f"n2t/{base_folder}/{test_name}/*.vm"):
         with open(file) as f:
             code_files.append(f.read())
 
-    output = translator([code_to_misc_file(c) for c in code_files])
-    with open(f"n2t/{base_folder}/{test_name}.asm", "w") as f:
+    output = translator([code_to_misc_file(c) for c in code_files], write_init=write_init)
+    with open(f"n2t/{base_folder}/{test_name}/{test_name}.asm", "w") as f:
         f.write(output)
 
     cmd = f"local/n2t/tools/CPUEmulator.sh n2t/{base_folder}/{test_name}/{test_name}.tst"

@@ -9,6 +9,23 @@ VM_EXTENSION = ".vm"
 ASM_EXTENSION = ".asm"
 
 
+outputs = ""
+
+
+def annotate(func):
+    def wrap(*args, **kwargs):
+        filtered_args = args[1:] if len(args) and isinstance(args[0], CodeWriter) else args
+        filtered_args = [str(a) for a in filtered_args]
+        description = func.__name__ + " --- " + " ".join(filtered_args)
+        result = func(*args, **kwargs)
+        result_copied = result[:]
+        result_copied[0] += (" " * (20 - len(result_copied[0]))) + f"// {description}"
+        global outputs
+        outputs += ("\n" + "\n".join(result_copied))
+        return result
+    return wrap
+
+
 class File(NamedTuple):
     filename: str
     contents: str
@@ -86,8 +103,8 @@ class Parser(BaseParser):
 
 
 class CodeWriter:
-    def __init__(self, file: File):
-        self._file = file
+    def __init__(self):
+        self._file = None
         self._jump_count = 0
         self._call_count = 0
 
@@ -97,6 +114,9 @@ class CodeWriter:
     _store_addr_in_d = ["D=A"]
     _store_d_at_address = ["M=D"]
     _goto_stack = ["@SP", "A=M"]
+
+    def set_file(self, file: File):
+        self._file = file
 
     def _get_unique_jump_symbol(self) -> str:
         symbol = f"JUMP{self._jump_count}"
@@ -145,6 +165,7 @@ class CodeWriter:
         add_offset = ["A=A+D"] if offset else []
         return store_offset + goto_segment + add_offset
 
+    @annotate
     def write_arithmetic(self, command: str) -> List[str]:
         if command == "add":
             return self._write_add_sub("+")
@@ -167,6 +188,7 @@ class CodeWriter:
         else:
             raise NotImplementedError
 
+    @annotate
     def write_push_pop(self, command_type: VMCommandType, arg1: str, arg2: int) -> List[str]:
         if command_type == VMCommandType.PUSH:
             if arg1 == "constant":
@@ -187,43 +209,49 @@ class CodeWriter:
         else:
             raise NotImplementedError
 
-    @staticmethod
-    def write_init() -> List[str]:
+    @annotate
+    def write_init(self) -> List[str]:
         initialize = lambda val, label: [f"@{val}", "D=A", f"@{label}", "M=D"]
         write_sp = initialize(261, "SP")
         # write_lcl = initialize(300, "LCL")
         # write_arg = initialize(400, "ARG")
         # write_this = initialize(3000, "THIS")
         # write_that = initialize(4000, "THAT")
-        jump_sys_init = CodeWriter.write_goto("Sys.init")
+        # write_other_defaults = write_lcl + write_arg + write_this + write_that
+        jump_sys_init = self.write_goto("Sys.init")
         return write_sp + jump_sys_init
 
     @staticmethod
+    @annotate
     def write_label(label: str) -> List[str]:
         return [f"({label})"]
 
-    @staticmethod
-    def write_goto(label: str) -> List[str]:
+    @annotate
+    def write_goto(self, label: str) -> List[str]:
         return [f"@{label}", "0;JMP"]
 
+    @annotate
     def write_if_goto(self, label: str) -> List[str]:
         return self._decrement_stack_pointer + ["A=M", "D=M", f"@{label}", "D;JNE"]
 
+    @annotate
     def write_call(self, fn_name: str, num_args: int) -> List[str]:
         # assumes args have been pushed (that must be done in .vm)
         callback_label = f"CALL_RETURN_{self._call_count}"
         self._call_count += 1
         goto_sp = ["@SP", "A=M"]  # doesn't use D
+        special = [f"@{callback_label}", "D=A"] + goto_sp + ["M=D"] + self._increment_stack_pointer
         save_and_inc = lambda sym: [f"@{sym}", "D=M"] + goto_sp + ["M=D"] + self._increment_stack_pointer
         reposition_arg = [f"@{num_args + 5}", "D=A"] + goto_sp + ["D=A-D", "@ARG", "M=D"]
         reposition_lcl = goto_sp + ["D=A", "@LCL", "M=D"]
-        return save_and_inc(callback_label) + save_and_inc("LCL") + save_and_inc("ARG") + \
+        return special + save_and_inc("LCL") + save_and_inc("ARG") + \
                save_and_inc("THIS") + save_and_inc("THAT") + reposition_arg + reposition_lcl + \
                self.write_goto(fn_name) + [f"({callback_label})"]
 
+    @annotate
     def write_return(self) -> List[str]:
         copy_lcl = ["@LCL", "D=M", "@R13", "M=D"]
-        copy_return_addr = ["@5", "D=A", "@R13", "D=M-D", "@R14", "M=D"]
+        copy_return_addr = ["@5", "D=A", "@R13", "A=M-D", "D=M", "@R14", "M=D"]
         reposition_return_value = self._decrement_stack_pointer + ["@SP", "A=M", "D=M", "@ARG", "A=M", "M=D"]
         restore_sp = ["@ARG", "D=M", "@SP", "M=D"] + self._increment_stack_pointer
         restore_that = ["@1", "D=A", "@R13", "A=M-D", "D=M", "@THAT", "M=D"]
@@ -231,8 +259,10 @@ class CodeWriter:
         restore_arg = ["@3", "D=A", "@R13", "A=M-D", "D=M", "@ARG", "M=D"]
         restore_lcl = ["@4", "D=A", "@R13", "A=M-D", "D=M", "@LCL", "M=D"]
         restore_things = restore_that + restore_this + restore_arg + restore_lcl
-        return copy_lcl + copy_return_addr + reposition_return_value + restore_sp + restore_things
+        ret = ["@R14", "A=M", "0;JMP"]
+        return copy_lcl + copy_return_addr + reposition_return_value + restore_sp + restore_things + ret
 
+    @annotate
     def write_function(self, name, num_locals: int) -> List[str]:
         set_to_zero_and_increment = ["M=0"] + self._increment_stack_pointer
         return [f"({name})"] + ["@SP", "A=M"] + (set_to_zero_and_increment * num_locals)
@@ -242,11 +272,12 @@ def file_strings_to_asm_commands(files: List[File], write_init=True) -> List[str
     if not len(files):
         raise Exception("Calling this without any files just doesn't make sense....")
 
-    asm_commands = CodeWriter.write_init() if write_init else []
+    code_writer = CodeWriter()
+    asm_commands = code_writer.write_init() if write_init else []
 
     for f in files:
+        code_writer.set_file(f)
         parser = Parser(f.contents)
-        code_writer = CodeWriter(f)
         while parser.has_more_commands():
             command = parser.advance()
             if parser.command_type() == VMCommandType.PUSH:
@@ -267,12 +298,13 @@ def file_strings_to_asm_commands(files: List[File], write_init=True) -> List[str
                 asm_commands += code_writer.write_label(parser.arg1())
             elif parser.command_type() == VMCommandType.CALL:
                 asm_commands += code_writer.write_call(parser.arg1(), parser.arg2())
-
+    global outputs
+    # print('----outputs', outputs)
     return asm_commands
 
 
-def translator(files: List[File]) -> str:
-    return "\n".join(file_strings_to_asm_commands(files)) + "\n"
+def translator(files: List[File], write_init=True) -> str:
+    return "\n".join(file_strings_to_asm_commands(files, write_init=write_init)) + "\n"
 
 
 def read_file_to_str(path: str) -> str:
