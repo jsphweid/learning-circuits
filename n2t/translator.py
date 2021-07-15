@@ -89,6 +89,7 @@ class CodeWriter:
     def __init__(self, file: File):
         self._file = file
         self._jump_count = 0
+        self._call_count = 0
 
     _increment_stack_pointer = ["@SP", "M=M+1"]
     _decrement_stack_pointer = ["@SP", "M=M-1"]
@@ -188,20 +189,37 @@ class CodeWriter:
 
     @staticmethod
     def write_init() -> List[str]:
-        # TODO: vm initialization/bootstrap... gets placed at beginning of the output
-        return []
+        initialize = lambda val, label: [f"@{val}", "D=A", f"@{label}", "M=D"]
+        write_sp = initialize(261, "SP")
+        # write_lcl = initialize(300, "LCL")
+        # write_arg = initialize(400, "ARG")
+        # write_this = initialize(3000, "THIS")
+        # write_that = initialize(4000, "THAT")
+        jump_sys_init = CodeWriter.write_goto("Sys.init")
+        return write_sp + jump_sys_init
 
-    def write_label(self, label: str) -> List[str]:
+    @staticmethod
+    def write_label(label: str) -> List[str]:
         return [f"({label})"]
 
-    def write_goto(self, label: str) -> List[str]:
+    @staticmethod
+    def write_goto(label: str) -> List[str]:
         return [f"@{label}", "0;JMP"]
 
     def write_if_goto(self, label: str) -> List[str]:
         return self._decrement_stack_pointer + ["A=M", "D=M", f"@{label}", "D;JNE"]
 
-    def write_call(self):
-        pass
+    def write_call(self, fn_name: str, num_args: int) -> List[str]:
+        # assumes args have been pushed (that must be done in .vm)
+        callback_label = f"CALL_RETURN_{self._call_count}"
+        self._call_count += 1
+        goto_sp = ["@SP", "A=M"]  # doesn't use D
+        save_and_inc = lambda sym: [f"@{sym}", "D=M"] + goto_sp + ["M=D"] + self._increment_stack_pointer
+        reposition_arg = [f"@{num_args + 5}", "D=A"] + goto_sp + ["D=A-D", "@ARG", "M=D"]
+        reposition_lcl = goto_sp + ["D=A", "@LCL", "M=D"]
+        return save_and_inc(callback_label) + save_and_inc("LCL") + save_and_inc("ARG") + \
+               save_and_inc("THIS") + save_and_inc("THAT") + reposition_arg + reposition_lcl + \
+               self.write_goto(fn_name) + [f"({callback_label})"]
 
     def write_return(self) -> List[str]:
         copy_lcl = ["@LCL", "D=M", "@R13", "M=D"]
@@ -216,42 +234,45 @@ class CodeWriter:
         return copy_lcl + copy_return_addr + reposition_return_value + restore_sp + restore_things
 
     def write_function(self, name, num_locals: int) -> List[str]:
-        # TODO: this is completely broken
-        return [f"({name})"] + self._increment_stack_pointer * num_locals
+        set_to_zero_and_increment = ["M=0"] + self._increment_stack_pointer
+        return [f"({name})"] + ["@SP", "A=M"] + (set_to_zero_and_increment * num_locals)
 
 
-def file_strings_to_asm_commands(files: List[File]) -> List[str]:
-    if len(files) > 1 or not len(files):
-        raise NotImplementedError
-    parser = Parser(files[0].contents)
-    code_writer = CodeWriter(files[0])
-    asm_commands = []
-    while parser.has_more_commands():
-        command = parser.advance()
-        if parser.command_type() == VMCommandType.PUSH:
-            asm_commands += code_writer.write_push_pop(VMCommandType.PUSH, parser.arg1(), parser.arg2())
-        elif parser.command_type() == VMCommandType.POP:
-            asm_commands += code_writer.write_push_pop(VMCommandType.POP, parser.arg1(), parser.arg2())
-        elif parser.command_type() == VMCommandType.ARITHMETIC:
-            asm_commands += code_writer.write_arithmetic(command)
-        elif parser.command_type() == VMCommandType.FUNCTION:
-            asm_commands += code_writer.write_function(parser.arg1(), parser.arg2())
-        elif parser.command_type() == VMCommandType.RETURN:
-            asm_commands += code_writer.write_return()
-        elif parser.command_type() == VMCommandType.GOTO:
-            asm_commands += code_writer.write_goto(parser.arg1())
-        elif parser.command_type() == VMCommandType.IF_GOTO:
-            asm_commands += code_writer.write_if_goto(parser.arg1())
-        elif parser.command_type() == VMCommandType.LABEL:
-            asm_commands += code_writer.write_label(parser.arg1())
+def file_strings_to_asm_commands(files: List[File], write_init=True) -> List[str]:
+    if not len(files):
+        raise Exception("Calling this without any files just doesn't make sense....")
+
+    asm_commands = CodeWriter.write_init() if write_init else []
+
+    for f in files:
+        parser = Parser(f.contents)
+        code_writer = CodeWriter(f)
+        while parser.has_more_commands():
+            command = parser.advance()
+            if parser.command_type() == VMCommandType.PUSH:
+                asm_commands += code_writer.write_push_pop(VMCommandType.PUSH, parser.arg1(), parser.arg2())
+            elif parser.command_type() == VMCommandType.POP:
+                asm_commands += code_writer.write_push_pop(VMCommandType.POP, parser.arg1(), parser.arg2())
+            elif parser.command_type() == VMCommandType.ARITHMETIC:
+                asm_commands += code_writer.write_arithmetic(command)
+            elif parser.command_type() == VMCommandType.FUNCTION:
+                asm_commands += code_writer.write_function(parser.arg1(), parser.arg2())
+            elif parser.command_type() == VMCommandType.RETURN:
+                asm_commands += code_writer.write_return()
+            elif parser.command_type() == VMCommandType.GOTO:
+                asm_commands += code_writer.write_goto(parser.arg1())
+            elif parser.command_type() == VMCommandType.IF_GOTO:
+                asm_commands += code_writer.write_if_goto(parser.arg1())
+            elif parser.command_type() == VMCommandType.LABEL:
+                asm_commands += code_writer.write_label(parser.arg1())
+            elif parser.command_type() == VMCommandType.CALL:
+                asm_commands += code_writer.write_call(parser.arg1(), parser.arg2())
 
     return asm_commands
 
 
 def translator(files: List[File]) -> str:
-    init_commands = CodeWriter.write_init()
-    asm_commands = init_commands + file_strings_to_asm_commands(files)
-    return "\n".join(asm_commands) + "\n"
+    return "\n".join(file_strings_to_asm_commands(files)) + "\n"
 
 
 def read_file_to_str(path: str) -> str:
@@ -268,8 +289,8 @@ def get_documents_from_path(path: str) -> List[File]:
         # for now, just get files that are direct children of the dir
         for filename in os.listdir(path):
             if VM_EXTENSION in filename and filename[-3:] == VM_EXTENSION:
-                path = f"{path}/{filename}"
-                ret.append(File(filename, read_file_to_str(path)))
+                this_path = f"{path}/{filename}"
+                ret.append(File(filename, read_file_to_str(this_path)))
     else:
         filename = path.split("/")[-1]
         ret.append(File(filename, read_file_to_str(path)))

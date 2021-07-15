@@ -1,4 +1,5 @@
 import pytest
+import glob
 from subprocess import STDOUT, check_output
 
 from n2t.translator import Parser, VMCommandType, file_strings_to_asm_commands, translator, File
@@ -45,33 +46,36 @@ def test_basic_stack_arithmetic_works():
     """
     expected_output = ['@7', 'D=A', '@SP', 'A=M', 'M=D', '@SP', 'M=M+1', '@8', 'D=A', '@SP', 'A=M', 'M=D', '@SP',
                        'M=M+1', '@SP', 'M=M-1', 'A=M', 'D=M', '@SP', 'M=M-1', 'A=M', 'M=M+D', '@SP', 'M=M+1']
-    assert file_strings_to_asm_commands([code_to_misc_file(code)]) == expected_output
+    assert file_strings_to_asm_commands([code_to_misc_file(code)], write_init=False) == expected_output
 
 
-@pytest.mark.parametrize("test_path", [
-    "07_tests/SimpleAdd/SimpleAdd",
-    "07_tests/StackTest/StackTest",
-    "07_tests/BasicTest/BasicTest",
-    "07_tests/PointerTest/PointerTest",
-    "07_tests/StaticTest/StaticTest",
-    "08_tests/BasicLoop/BasicLoop",
-    "08_tests/FibonacciSeries/FibonacciSeries",
-    "08_tests/SimpleFunction/SimpleFunction"
+@pytest.mark.parametrize("base_folder, test_name", [
+    ["07_tests", "SimpleAdd"],
+    ["07_tests", "StackTest"],
+    ["07_tests", "BasicTest"],
+    ["07_tests", "PointerTest"],
+    ["07_tests", "StaticTest"],
+    ["08_tests", "BasicLoop"],
+    ["08_tests", "FibonacciSeries"],
+    ["08_tests", "SimpleFunction"],
+    ["08_tests", "FibonacciElement"],
 ])
-def test_it_passes_translation_tests(test_path):
-    with open(f"n2t/{test_path}.vm") as f:
-        code = f.read()
-    output = translator([code_to_misc_file(code)])
-    with open(f"n2t/{test_path}.asm", "w") as f:
+def test_it_passes_translation_tests(base_folder, test_name):
+    code_files = []
+    for file in glob.glob(f"n2t/{base_folder}/{test_name}/*.vm"):
+        with open(file) as f:
+            code_files.append(f.read())
+
+    output = translator([code_to_misc_file(c) for c in code_files])
+    with open(f"n2t/{base_folder}/{test_name}.asm", "w") as f:
         f.write(output)
 
-    cmd = f"local/n2t/tools/CPUEmulator.sh n2t/{test_path}.tst"
-    print('cmd', cmd)
+    cmd = f"local/n2t/tools/CPUEmulator.sh n2t/{base_folder}/{test_name}/{test_name}.tst"
     output = check_output(cmd, shell=True, stderr=STDOUT)
     output = str(output)
     if "End of script - Comparison ended successfully" not in output:
         print('output', output)
-        raise Exception(f"{test_path} script didn't succeed")
+        raise Exception(f"{base_folder}/{test_name}/{test_name} script didn't succeed")
 
 
 @pytest.mark.parametrize("segment, reg_name", [
@@ -82,13 +86,13 @@ def test_it_passes_translation_tests(test_path):
 ])
 def test_it_pushes_from_segment(segment, reg_name):
     vm_command = f"push {segment} 5"
-    results = file_strings_to_asm_commands([code_to_misc_file(vm_command)])
+    results = file_strings_to_asm_commands([code_to_misc_file(vm_command)], write_init=False)
     assert results == ['@5', 'D=A', f'@{reg_name}', 'A=M', 'A=A+D', 'D=M', '@SP', 'A=M', 'M=D', '@SP', 'M=M+1']
 
 
 def test_it_pushes_from_temp():
     vm_command = f"push temp 5"
-    results = file_strings_to_asm_commands([code_to_misc_file(vm_command)])
+    results = file_strings_to_asm_commands([code_to_misc_file(vm_command)], write_init=False)
     assert results == ['@5', 'D=A', f'@R5', 'A=A+D', 'D=M', '@SP', 'A=M', 'M=D', '@SP', 'M=M+1']
 
 
@@ -100,13 +104,13 @@ def test_it_pushes_from_temp():
 ])
 def test_it_pops_to_segment(segment, reg_name):
     vm_command = f"pop {segment} 4"
-    results = file_strings_to_asm_commands([code_to_misc_file(vm_command)])
+    results = file_strings_to_asm_commands([code_to_misc_file(vm_command)], write_init=False)
     assert results == ['@SP', 'M=M-1', 'A=M', 'D=M', '@R13', 'M=D', '@4', 'D=A', f'@{reg_name}', 'A=M', 'A=A+D', 'D=A',
                        '@R14', 'M=D', '@R13', 'D=M', '@R14', 'A=M', 'M=D']
 
 
 def test_it_pops_to_temp():
     vm_command = f"pop temp 4"
-    results = file_strings_to_asm_commands([code_to_misc_file(vm_command)])
+    results = file_strings_to_asm_commands([code_to_misc_file(vm_command)], write_init=False)
     assert results == ['@SP', 'M=M-1', 'A=M', 'D=M', '@R13', 'M=D', '@4', 'D=A', f'@R5', 'A=A+D', 'D=A',
                        '@R14', 'M=D', '@R13', 'D=M', '@R14', 'A=M', 'M=D']
