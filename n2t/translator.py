@@ -156,13 +156,12 @@ class CodeWriter:
                CodeWriter._increment_stack_pointer
 
     def _goto_segment(self, segment: str, offset=0) -> List[str]:
-        mapping = {"this": "THIS", "that": "THAT", "local": "LCL", "argument": "ARG", "temp": "R5", "pointer": "R3",
-                   "static": "16"}
+        mapping = {"this": "THIS", "that": "THAT", "local": "LCL", "argument": "ARG", "temp": "R5", "pointer": "R3"}
         ref = mapping.get(segment, segment)  # if you want to use R12 or whatever you can bypass the mapping
         goto_segment = [f"@{ref}"] if segment == "temp" or segment == "pointer" else [f"@{ref}", "A=M"]
         goto_segment = [f"@{self._file.filename_extensionless}.{offset}"] if segment == "static" else goto_segment
-        store_offset = [f"@{offset}", "D=A"] if offset else []
-        add_offset = ["A=A+D"] if offset else []
+        store_offset = [f"@{offset}", "D=A"] if offset and segment != "static" else []
+        add_offset = ["A=A+D"] if offset and segment != "static" else []
         return store_offset + goto_segment + add_offset
 
     @annotate

@@ -60,14 +60,15 @@ def test_basic_stack_arithmetic_works():
     ["08_tests", "SimpleFunction", True],
     ["08_tests", "NestedCall", True],
     ["08_tests", "FibonacciElement", True],
+    ["08_tests", "StaticsTest", True],
 ])
 def test_it_passes_translation_tests(base_folder, test_name, write_init):
     code_files = []
     for file in glob.glob(f"n2t/{base_folder}/{test_name}/*.vm"):
         with open(file) as f:
-            code_files.append(f.read())
+            code_files.append(File(file.split("/")[-1], f.read()))
 
-    output = translator([code_to_misc_file(c) for c in code_files], write_init=write_init)
+    output = translator(code_files, write_init=write_init)
     with open(f"n2t/{base_folder}/{test_name}/{test_name}.asm", "w") as f:
         f.write(output)
 
