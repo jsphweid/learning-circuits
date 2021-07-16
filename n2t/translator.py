@@ -1,13 +1,8 @@
-import os
 import sys
 from enum import Enum
-from typing import List, Optional, NamedTuple
+from typing import List, Optional
 
-from n2t.shared import BaseParser, WhiteSpaceStrategy
-
-VM_EXTENSION = ".vm"
-ASM_EXTENSION = ".asm"
-
+from n2t.shared import BaseParser, WhiteSpaceStrategy, get_documents_from_path, FileExtension, File
 
 outputs = ""
 
@@ -23,16 +18,8 @@ def annotate(func):
         global outputs
         outputs += ("\n" + "\n".join(result_copied))
         return result
+
     return wrap
-
-
-class File(NamedTuple):
-    filename: str
-    contents: str
-
-    @property
-    def filename_extensionless(self):
-        return "".join(self.filename.split(".")[0:-1])
 
 
 class VMCommandType(Enum):
@@ -53,7 +40,7 @@ class Parser(BaseParser):
         super().__init__(raw_file_contents, WhiteSpaceStrategy.MAX_ONE_IN_BETWEEN_WORDS)
 
     def command_type(self) -> Optional[VMCommandType]:
-        current = self.current_command()
+        current = self.current()
         if current:
             mapping = {
                 "add": VMCommandType.ARITHMETIC,
@@ -81,25 +68,25 @@ class Parser(BaseParser):
             return command_type
 
     def arg1(self) -> Optional[str]:
-        if self.current_command():
+        if self.current():
             if self.command_type == VMCommandType.RETURN:
                 raise Exception("Shouldn't have called arg1 when the command is a `return` type...")
             elif self.command_type() == VMCommandType.ARITHMETIC:
-                return self.current_command()  # should be either `add` or `sub`
+                return self.current()  # should be either `add` or `sub`
             else:
-                return self.current_command().split(" ")[1]
+                return self.current().split(" ")[1]
 
     def arg2(self) -> Optional[int]:
-        if self.current_command():
+        if self.current():
             if self.command_type() in [
                 VMCommandType.PUSH,
                 VMCommandType.POP,
                 VMCommandType.FUNCTION,
                 VMCommandType.CALL,
             ]:
-                return int(self.current_command().split(" ")[2])
+                return int(self.current().split(" ")[2])
             else:
-                raise Exception(f"Shouldn't not have requested arg2 for command `{self.current_command()}`")
+                raise Exception(f"Shouldn't not have requested arg2 for command `{self.current()}`")
 
 
 class CodeWriter:
@@ -277,7 +264,7 @@ def file_strings_to_asm_commands(files: List[File], write_init=True) -> List[str
     for f in files:
         code_writer.set_file(f)
         parser = Parser(f.contents)
-        while parser.has_more_commands():
+        while parser.has_more():
             command = parser.advance()
             if parser.command_type() == VMCommandType.PUSH:
                 asm_commands += code_writer.write_push_pop(VMCommandType.PUSH, parser.arg1(), parser.arg2())
@@ -306,33 +293,11 @@ def translator(files: List[File], write_init=True) -> str:
     return "\n".join(file_strings_to_asm_commands(files, write_init=write_init)) + "\n"
 
 
-def read_file_to_str(path: str) -> str:
-    with open(path, "r") as f:
-        contents = f.read()
-    return contents
-
-
-def get_documents_from_path(path: str) -> List[File]:
-    ret: List[File] = []
-    # if path is dir, read all vm files
-    # if path is file, then assume it's a single vm file
-    if os.path.isdir(path):
-        # for now, just get files that are direct children of the dir
-        for filename in os.listdir(path):
-            if VM_EXTENSION in filename and filename[-3:] == VM_EXTENSION:
-                this_path = f"{path}/{filename}"
-                ret.append(File(filename, read_file_to_str(this_path)))
-    else:
-        filename = path.split("/")[-1]
-        ret.append(File(filename, read_file_to_str(path)))
-    return ret
-
-
 if __name__ == "__main__":
     try:
         assert len(sys.argv) == 3
         file_or_dir = sys.argv[1]
-        documents = get_documents_from_path(file_or_dir)
+        documents = get_documents_from_path(file_or_dir, FileExtension.VM)
         destination_filepath = sys.argv[2]
     except Exception:
         raise Exception("Must have 2 valid filepath arguments")

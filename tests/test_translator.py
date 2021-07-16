@@ -16,26 +16,26 @@ def test_parser():
         add
     """
     parser = Parser(code)
-    assert not parser.current_command()
+    assert not parser.current()
 
     assert parser.advance() == "push constant 7"
     assert parser.command_type() == VMCommandType.PUSH
     assert parser.arg1() == "constant"
     assert parser.arg2() == 7
-    assert parser.has_more_commands()
+    assert parser.has_more()
 
     assert parser.advance() == "pop static 3"
     assert parser.command_type() == VMCommandType.POP
     assert parser.arg1() == "static"
     assert parser.arg2() == 3
-    assert parser.has_more_commands()
+    assert parser.has_more()
 
     assert parser.advance() == "add"
     assert parser.command_type() == VMCommandType.ARITHMETIC
     assert parser.arg1() == "add"
     with pytest.raises(Exception):
         parser.arg2()
-    assert not parser.has_more_commands()
+    assert not parser.has_more()
 
 
 def test_basic_stack_arithmetic_works():
