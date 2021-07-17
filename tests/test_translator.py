@@ -72,7 +72,7 @@ def test_it_passes_translation_tests(base_folder, test_name, write_init):
     with open(f"n2t/{base_folder}/{test_name}/{test_name}.asm", "w") as f:
         f.write(output)
 
-    cmd = f"local/n2t/tools/CPUEmulator.sh n2t/{base_folder}/{test_name}/{test_name}.tst"
+    cmd = f"n2t_software/tools/CPUEmulator.sh n2t/{base_folder}/{test_name}/{test_name}.tst"
     output = check_output(cmd, shell=True, stderr=STDOUT)
     output = str(output)
     if "End of script - Comparison ended successfully" not in output:
