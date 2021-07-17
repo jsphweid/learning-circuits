@@ -13,7 +13,7 @@ class AssemblyCommandType(Enum):
 
 
 class Parser(BaseParser):
-    _commands = List[Command]
+    _tokens = List[Command]
 
     def __init__(self, raw_file_contents: str) -> None:
         super().__init__(raw_file_contents, WhiteSpaceStrategy.ELIMINATE_ALL)

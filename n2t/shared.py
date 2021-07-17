@@ -1,9 +1,7 @@
 import re
 import os
 from enum import Enum
-from typing import List, Optional, NamedTuple
-
-Command = str
+from typing import List, Optional, NamedTuple, Callable, TypeVar, Any
 
 
 class FileExtension(Enum):
@@ -17,30 +15,54 @@ class WhiteSpaceStrategy(Enum):
     MAX_ONE_IN_BETWEEN_WORDS = 1
 
 
-class BaseParser:
-    def __init__(self, raw_file_contents: str, white_space_strategy: WhiteSpaceStrategy):
-        self._white_space_strategy = white_space_strategy
-        self._commands = self.parse_commands(raw_file_contents)
-        self._current_command_index = -1
+def default_tokenizer_fn(text: str) -> List[str]:
+    return text.split("\n") if text else []
 
-    def current(self) -> Optional[Command]:
-        return self._commands[self._current_command_index] if \
-            0 <= self._current_command_index < len(self._commands) else None
+
+# NOTE on the `Any`... Maybe Python can do better than this?
+class BaseParser:
+    def __init__(self,
+                 raw_file_contents: str,
+                 white_space_strategy: WhiteSpaceStrategy,
+                 tokenizer: Callable[[str], List[Any]] = default_tokenizer_fn):
+        self._white_space_strategy = white_space_strategy
+        self._cleaned_contents = self.clean_file(raw_file_contents)
+        self._tokens = tokenizer(self._cleaned_contents)
+        self._current_index = -1
+
+    def current(self) -> Optional[Any]:
+        return self._tokens[self._current_index] if \
+            0 <= self._current_index < len(self._tokens) else None
 
     def has_more(self):
-        return self._current_command_index + 1 < len(self._commands)
+        return self._current_index + 1 < len(self._tokens)
 
-    def advance(self) -> Command:
-        self._current_command_index += 1
-        return self._commands[self._current_command_index]
+    def advance(self) -> Any:
+        self._current_index += 1
+        return self._tokens[self._current_index]
 
-    def parse_commands(self, file: str) -> List[Command]:
+    def clean_file(self, file: str) -> str:
+        # TODO: needs to handle multiline comments...
+        file = self.remove_multiline_comments(file)
         ret = []
         for line in file.split("\n"):
             cleaned_line = self.clean_line(line)
             if cleaned_line:
                 ret.append(cleaned_line)
-        return ret
+        return "\n".join(ret)
+
+    def remove_multiline_comments(self, file: str) -> str:
+        while True:
+            start_index = file.find("/*")
+            end_index = file.find("*/")
+            if start_index < 0 and end_index < 0:
+                break
+            elif start_index >= 0 and end_index >= 0:
+                file = file[0:start_index] + file[end_index + 2:]
+            else:
+                # TODO: create better error
+                raise Exception("Improper multiline comment...")
+        return file
 
     def clean_line(self, line: str):
         mostly_cleaned = line.split("//")[0].replace("\t", "")
