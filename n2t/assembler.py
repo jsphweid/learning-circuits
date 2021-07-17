@@ -2,7 +2,7 @@ import sys
 from typing import List, Optional, Dict
 from enum import Enum
 
-from n2t.shared import Command, BaseParser, WhiteSpaceStrategy
+from n2t.shared import BaseParser, WhiteSpaceStrategy
 
 
 class AssemblyCommandType(Enum):
@@ -13,7 +13,7 @@ class AssemblyCommandType(Enum):
 
 
 class Parser(BaseParser):
-    _tokens = List[Command]
+    _tokens = List[str]
 
     def __init__(self, raw_file_contents: str) -> None:
         super().__init__(raw_file_contents, WhiteSpaceStrategy.ELIMINATE_ALL)
