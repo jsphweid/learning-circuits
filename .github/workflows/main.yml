@@ -12,6 +12,10 @@ jobs:
     - uses: actions/checkout@master
     - name: install iverilog
       run: sudo apt update && sudo apt install iverilog -y
+    - uses: actions/setup-java@v2
+      with:
+        distribution: 'adopt'
+        java-version: '8'
     - name: GitHub Action for pytest
       uses: cclauss/GitHub-Action-for-pytest@master
       with:
