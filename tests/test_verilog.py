@@ -42,6 +42,7 @@ def compile_test_file(test_file: FileToTest) -> str:
     try:
         output = check_output(compile_command, shell=True, stderr=STDOUT)
         if len(output) > 0:
+            print("Output", output)
             raise Exception(output)
         return output_path
     except CalledProcessError as e:
