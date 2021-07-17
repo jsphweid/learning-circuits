@@ -298,7 +298,7 @@ def file_strings_to_asm_commands(files: List[File], write_init=True) -> List[str
             elif parser.command_type() == VMCommandType.CALL:
                 asm_commands += code_writer.write_call(parser.arg1(), parser.arg2())
     global outputs
-    print('----outputs', outputs)
+    # print('----outputs', outputs)
     return asm_commands
 
 
