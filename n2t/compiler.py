@@ -396,37 +396,13 @@ class CompilationEngine:
         return self._compile_expression(children)
 
     def _compile_expression(self, tokens: List[Token]) -> Unit:
-        if len(tokens) > 0:
-            print('---ned to compile', tokens)
         children = []
-
-        # num_tokens = len(tokens)
-        # for i, token in enumerate(tokens):
-        #     if i + 1 < num_tokens:  # if we can look ahead
-        #         next_token = tokens[i + 1]
-        #     else:  # must be the last token...
-        #         pass
-
         for token in tokens:
             children.append(token if token.type == TokenType.SYMBOL else self._compile_term(token))
         return Unit(WrapperType.Expression, children)
 
     def _compile_term(self, first_token: Token) -> Unit:
         return Unit(WrapperType.Term, [first_token])
-
-    def _compile_expression_list_til_paren(self, first_token: Token) -> Unit:
-        if first_token.content == ")":
-            self._tokenizer.retreat()
-            return self._compile_expression_list([])
-        children = [first_token]
-        while True:
-            next_token = self._tokenizer.advance()
-            if next_token.content == ")":
-                self._tokenizer.retreat()
-                break
-            else:
-                children.append(next_token)
-        return self._compile_expression_list(children)
 
     def _compile_do_statement(self, first_token: Token) -> Unit:
         # first_token is expected to be a `do` keyword while the second is an identifier
@@ -439,9 +415,7 @@ class CompilationEngine:
             children.extend([fourth, fifth])
 
         # TODO: this doesn't seem right, should be parameter, not expression?
-        expression_list = self._compile_expression_list_til_paren(self._tokenizer.advance())
-        if expression_list:
-            children.append(expression_list)
+        children.append(self._compile_expression_list(self._tokenizer.advance()))
         children.append(self._tokenizer.advance())  # )
 
         last_token = self._tokenizer.advance()
@@ -479,17 +453,28 @@ class CompilationEngine:
         # For now, just return tokens
         return Unit(WrapperType.ParameterList, children=tokens)
 
-    def _compile_expression_list(self, tokens: List[Token]) -> Unit:
+    def _compile_expression_list(self, first_token: Token) -> Unit:
+
+        if first_token.content == ")":
+            self._tokenizer.retreat()
+            return Unit(WrapperType.ExpressionList, [])
+
         # an expression list is used as args when calling a function
         # each arg is separated by a `,` symbol and each arg will be a separate expression
         children = []
-        acc = []
-        for token in tokens:
-            if token.content == ",":
-                children.extend([self._compile_expression(acc), token])
+        acc = [first_token]
+
+        while True:
+            next_token = self._tokenizer.advance()
+            if next_token.content == ")":
+                self._tokenizer.retreat()
+                break
+            elif next_token.content == ",":
+                children.extend([self._compile_expression(acc), next_token])
                 acc = []
             else:
-                acc.append(token)
+                acc.append(next_token)
+
         if len(acc):
             children.append(self._compile_expression(acc))
         return Unit(WrapperType.ExpressionList, children)
