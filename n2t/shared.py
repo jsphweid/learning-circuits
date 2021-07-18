@@ -38,8 +38,17 @@ class BaseParser:
         return self._current_index + 1 < len(self._tokens)
 
     def advance(self) -> Any:
+        assert -1 <= self._current_index + 1 < len(self._tokens)
         self._current_index += 1
-        return self._tokens[self._current_index]
+        return self.current()
+
+    def retreat(self) -> Any:
+        assert -1 <= self._current_index - 1 < len(self._tokens)
+        self._current_index -= 1
+        return self.current()
+
+    def reset(self) -> None:
+        self._current_index = -1
 
     def clean_file(self, file: str) -> str:
         # TODO: needs to handle multiline comments...
@@ -72,6 +81,9 @@ class BaseParser:
             return re.sub('\s+', ' ', mostly_cleaned).strip()
         else:
             raise NotImplementedError
+
+    def get_all(self) -> List:
+        return self._tokens
 
 
 class File(NamedTuple):

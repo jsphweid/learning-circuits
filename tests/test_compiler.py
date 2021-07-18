@@ -1,6 +1,6 @@
 import pytest
 
-from n2t.compiler import tokenize, tokens_to_xml
+from n2t.compiler import get_tokens_as_xml, compile_as_xml
 
 base_folders = [
     "10_tests/ArrayTest/Main",
@@ -14,12 +14,23 @@ base_folders = [
 
 
 @pytest.mark.parametrize("base_folder", base_folders)
-def test_it_compiles_correct_xml(base_folder):
+def test_it_compiles_correct_xml_for_tokens(base_folder):
     with open(f"n2t/{base_folder}.jack") as f:
         jack_file = f.read()
 
     with open(f"n2t/{base_folder}T.xml") as f:
         token_xml_file = f.read()
 
-    tokens = tokenize(jack_file)
-    assert tokens_to_xml(tokens) == token_xml_file
+    assert get_tokens_as_xml(jack_file) == token_xml_file
+
+
+# TODO: temp, obviously...
+@pytest.mark.parametrize("base_folder", [f for f in base_folders if ("ExpressionLessSquare" in f) or ("ArrayTest" in f)])
+def test_it_compiles_correct_xml(base_folder):
+    with open(f"n2t/{base_folder}.jack") as f:
+        jack_file = f.read()
+
+    with open(f"n2t/{base_folder}.xml") as f:
+        token_xml_file = f.read()
+
+    assert compile_as_xml(jack_file) == token_xml_file
