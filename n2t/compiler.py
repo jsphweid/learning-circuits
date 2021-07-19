@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from enum import Enum
-from typing import List, Optional, Any
+from typing import List, Optional, Any, Set
 
 from n2t import xml_helpers
 from n2t.shared import BaseParser, WhiteSpaceStrategy
@@ -329,16 +329,13 @@ class CompilationEngine:
         # TODO: some of this logic should definitely be abstracted though
         children = [first_token, self._tokenizer.advance()]  # `while (`
 
-        # TODO: This can probably be reused
-        expression_tokens = []
         while True:
             next_token = self._tokenizer.advance()
             if next_token.content == ")":
-                children.append(self._compile_expression(expression_tokens))
                 children.append(next_token)
                 break
             else:
-                expression_tokens.append(next_token)
+                children.append(self._compile_expression(next_token, {")"}))
 
         while True:
             next_token = self._tokenizer.advance()
@@ -353,8 +350,15 @@ class CompilationEngine:
     def _compile_if_statement(self, first_token: Token) -> Unit:
         # first_token is expected to be `if`, second is `(`
         children = [first_token, self._tokenizer.advance()]  # `if (`
-        children.append(self._compile_expression([self._tokenizer.advance()]))  # like an identifier
-        children.append(self._tokenizer.advance())  # `)`
+
+        while True:
+            next_token = self._tokenizer.advance()
+            if next_token.content == ")":
+                children.append(next_token)
+                break
+            else:
+                children.append(self._compile_expression(next_token, {")"}))
+
         while True:
             next_token = self._tokenizer.advance()
             if next_token.content == "{":
@@ -380,25 +384,19 @@ class CompilationEngine:
                 children.append(next_token)
                 break
             else:
-                children.append(self._compile_expression_til_semicolon(next_token))
+                children.append(self._compile_expression(next_token, {";"}))
 
         return Unit(WrapperType.LetStatement, children)
 
-    def _compile_expression_til_semicolon(self, first_token: Token) -> Unit:
-        children = [first_token]
+    def _compile_expression(self, first_token: Token, end_symbols: Set[str]) -> Unit:
+        children = [first_token if first_token.type == TokenType.SYMBOL else self._compile_term(first_token)]
         while True:
             next_token = self._tokenizer.advance()
-            if next_token.content == ";":
+            if next_token.content in end_symbols:
                 self._tokenizer.retreat()
                 break
             else:
-                children.append(next_token)
-        return self._compile_expression(children)
-
-    def _compile_expression(self, tokens: List[Token]) -> Unit:
-        children = []
-        for token in tokens:
-            children.append(token if token.type == TokenType.SYMBOL else self._compile_term(token))
+                children.append(next_token if next_token.type == TokenType.SYMBOL else self._compile_term(next_token))
         return Unit(WrapperType.Expression, children)
 
     def _compile_term(self, first_token: Token) -> Unit:
@@ -415,7 +413,7 @@ class CompilationEngine:
             children.extend([fourth, fifth])
 
         # TODO: this doesn't seem right, should be parameter, not expression?
-        children.append(self._compile_expression_list(self._tokenizer.advance()))
+        children.append(self._compile_expression_list())
         children.append(self._tokenizer.advance())  # )
 
         last_token = self._tokenizer.advance()
@@ -433,7 +431,7 @@ class CompilationEngine:
                 children.append(next_token)
                 break
             else:
-                children.append(self._compile_expression([next_token]))
+                children.append(self._compile_expression(next_token, {";"}))
         # TODO: this is like the variable declaration...
         return Unit(WrapperType.ReturnStatement, children)
 
@@ -453,16 +451,16 @@ class CompilationEngine:
         # For now, just return tokens
         return Unit(WrapperType.ParameterList, children=tokens)
 
-    def _compile_expression_list(self, first_token: Token) -> Unit:
+    def _compile_expression_list(self) -> Unit:
 
-        if first_token.content == ")":
-            self._tokenizer.retreat()
-            return Unit(WrapperType.ExpressionList, [])
+        # if first_token.content == ")":
+        #     self._tokenizer.retreat()
+        #     return Unit(WrapperType.ExpressionList, [])
 
         # an expression list is used as args when calling a function
         # each arg is separated by a `,` symbol and each arg will be a separate expression
         children = []
-        acc = [first_token]
+        # acc = [first_token]
 
         while True:
             next_token = self._tokenizer.advance()
@@ -470,13 +468,14 @@ class CompilationEngine:
                 self._tokenizer.retreat()
                 break
             elif next_token.content == ",":
-                children.extend([self._compile_expression(acc), next_token])
-                acc = []
+                children.append(next_token)
+                # children.extend([self._compile_expression(acc, {")", ","}), next_token])
+                # acc = []
             else:
-                acc.append(next_token)
+                children.append(self._compile_expression(next_token, {")", ","}))
 
-        if len(acc):
-            children.append(self._compile_expression(acc))
+        # if len(acc):
+        #     children.append(self._compile_expression(acc))
         return Unit(WrapperType.ExpressionList, children)
 
     @staticmethod
