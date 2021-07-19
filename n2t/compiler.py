@@ -408,13 +408,22 @@ class CompilationEngine:
             if next_token.content in end_symbols:
                 self._tokenizer.retreat()
                 break
+            elif next_token.content in {"~", "-"}:
+                if peaked_token.content == "(":
+                    children.append(self._compile_term(next_token, {")"}, include=True))
+                else:
+                    children.append(self._compile_term(next_token, {peaked_token.content}, include=True))
             elif peaked_token.content == ".":
                 # function call whose term ends with included `)`
                 children.append(self._compile_term(next_token, {")"}, include=True))
+            elif peaked_token.content == "(":
+                # expression whose term ends with included `)`
+                children.append(next_token)
+                children.append(self._compile_term(self._tokenizer.advance(), {")"}, include=True))
             elif peaked_token.content == "[":
                 # array index whose term ends with included `]`
                 children.append(self._compile_term(next_token, {"]"}, include=True))
-            elif peaked_token.type == TokenType.SYMBOL:
+            elif next_token.type != TokenType.SYMBOL and peaked_token.type == TokenType.SYMBOL:
                 children.append(self._compile_term(next_token, {peaked_token.content}))
             else:
                 children.append(next_token if next_token.type == TokenType.SYMBOL else self._compile_term(next_token))
@@ -423,8 +432,13 @@ class CompilationEngine:
     def _compile_term(self, first_token: Token, end_symbols: Set[str] = {";", ")", ","}, include=False) -> Unit:
         children = [first_token]
         while True:
+            if first_token.content in end_symbols:
+                break
             next_token = self._tokenizer.advance()
-            if next_token.content in end_symbols:
+            if first_token.content in {"~", "-"}:
+                children.append(self._compile_term(next_token, {next_token.content}))
+                break
+            elif next_token.content in end_symbols:
                 if include:
                     children.append(next_token)
                 else:
@@ -432,6 +446,8 @@ class CompilationEngine:
                 break
             elif next_token.content == "[":
                 children.extend([next_token, self._compile_expression(self._tokenizer.advance(), {"]"})])
+            elif len(children) == 1 and first_token.content == "(":
+                children.append(self._compile_expression(next_token, {")"}))
             elif next_token.content == "(":
                 children.extend([next_token, self._compile_expression_list()])
             else:
