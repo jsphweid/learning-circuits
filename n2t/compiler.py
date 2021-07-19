@@ -374,10 +374,20 @@ class CompilationEngine:
     def _compile_let_statement(self, first_token: Token) -> Unit:
         # first_token is expected to be `let`
         # next tokens are identifier, `=` symbol, then an expression, ending in `;`
+        # but it can also be assigning using array index as well
         children = [first_token]
         identifier = self._tokenizer.advance()
-        assignment_symbol = self._tokenizer.advance()
-        children.extend([identifier, assignment_symbol])
+        if self._tokenizer.peak().content == "[":
+            children.append(identifier)
+            children.append(self._tokenizer.advance())  # add [
+            self._tokenizer.advance()
+            children.append(self._compile_expression(self._tokenizer.peak(), {"]"}))  # TODO: first arg stupid
+            children.append(self._tokenizer.advance())  # add ]
+            children.append(self._tokenizer.advance())  # add =
+        else:
+            assignment_symbol = self._tokenizer.advance()
+            children.extend([identifier, assignment_symbol])
+
         while True:
             next_token = self._tokenizer.advance()
             if next_token.content == ";":
