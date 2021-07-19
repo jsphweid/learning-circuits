@@ -389,18 +389,44 @@ class CompilationEngine:
         return Unit(WrapperType.LetStatement, children)
 
     def _compile_expression(self, first_token: Token, end_symbols: Set[str]) -> Unit:
-        children = [first_token if first_token.type == TokenType.SYMBOL else self._compile_term(first_token)]
+        # TODO: do we really need first_token???
+        children = []
+        self._tokenizer.retreat()
         while True:
             next_token = self._tokenizer.advance()
+            peaked_token = self._tokenizer.peak()
             if next_token.content in end_symbols:
                 self._tokenizer.retreat()
                 break
+            elif peaked_token.content == ".":
+                # function call whose term ends with included `)`
+                children.append(self._compile_term(next_token, {")"}, include=True))
+            elif peaked_token.content == "[":
+                # array index whose term ends with included `]`
+                children.append(self._compile_term(next_token, {"]"}, include=True))
+            elif peaked_token.type == TokenType.SYMBOL:
+                children.append(self._compile_term(next_token, {peaked_token.content}))
             else:
                 children.append(next_token if next_token.type == TokenType.SYMBOL else self._compile_term(next_token))
         return Unit(WrapperType.Expression, children)
 
-    def _compile_term(self, first_token: Token) -> Unit:
-        return Unit(WrapperType.Term, [first_token])
+    def _compile_term(self, first_token: Token, end_symbols: Set[str] = {";", ")", ","}, include=False) -> Unit:
+        children = [first_token]
+        while True:
+            next_token = self._tokenizer.advance()
+            if next_token.content in end_symbols:
+                if include:
+                    children.append(next_token)
+                else:
+                    self._tokenizer.retreat()
+                break
+            elif next_token.content == "[":
+                children.extend([next_token, self._compile_expression(self._tokenizer.advance(), {"]"})])
+            elif next_token.content == "(":
+                children.extend([next_token, self._compile_expression_list()])
+            else:
+                children.append(next_token)
+        return Unit(WrapperType.Term, children)
 
     def _compile_do_statement(self, first_token: Token) -> Unit:
         # first_token is expected to be a `do` keyword while the second is an identifier
@@ -452,16 +478,7 @@ class CompilationEngine:
         return Unit(WrapperType.ParameterList, children=tokens)
 
     def _compile_expression_list(self) -> Unit:
-
-        # if first_token.content == ")":
-        #     self._tokenizer.retreat()
-        #     return Unit(WrapperType.ExpressionList, [])
-
-        # an expression list is used as args when calling a function
-        # each arg is separated by a `,` symbol and each arg will be a separate expression
         children = []
-        # acc = [first_token]
-
         while True:
             next_token = self._tokenizer.advance()
             if next_token.content == ")":
@@ -469,18 +486,12 @@ class CompilationEngine:
                 break
             elif next_token.content == ",":
                 children.append(next_token)
-                # children.extend([self._compile_expression(acc, {")", ","}), next_token])
-                # acc = []
             else:
                 children.append(self._compile_expression(next_token, {")", ","}))
-
-        # if len(acc):
-        #     children.append(self._compile_expression(acc))
         return Unit(WrapperType.ExpressionList, children)
 
     @staticmethod
     def unit_as_xml(unit: Unit, level=0) -> str:
-        # f"<{xml_tag_text}> {formatted_content} </{xml_tag_text}>"
         xml_tag_text = unit_xml_mapping[unit.type]
         content = ""
         content += f"{' ' * level}<{xml_tag_text}>\n"
@@ -494,23 +505,3 @@ class CompilationEngine:
                 raise NotImplementedError
         content += f"{' ' * level}</{xml_tag_text}>\n"
         return content
-
-#
-# def get_xml(self) -> str:
-#     start = "<tokens>\n"
-#     end = "</tokens>\n"
-#     body = ""
-#
-#     mapping = {
-#         TokenType.INT_CONST: "integerConstant",
-#         TokenType.SYMBOL: "symbol",
-#         TokenType.STRING_CONST: "stringConstant",
-#         TokenType.KEYWORD: "keyword",
-#         TokenType.IDENTIFIER: "identifier",
-#     }
-#
-#     for token in self.get_all():
-#         xml_tag_text = mapping[token.type]
-#         body += xml_helpers.formulate_line(xml_tag_text, token.content) + "\n"
-#
-#     return start + body + end

@@ -25,7 +25,8 @@ def test_it_compiles_correct_xml_for_tokens(base_folder):
 
 
 # TODO: temp, obviously...
-@pytest.mark.parametrize("base_folder", [f for f in base_folders if ("ExpressionLessSquare" in f) or ("ArrayTest" in f)])
+@pytest.mark.parametrize("base_folder",
+                         [f for f in base_folders if ("ExpressionLessSquare" in f) or ("ArrayTest" in f)])
 def test_it_compiles_correct_xml(base_folder):
     with open(f"n2t/{base_folder}.jack") as f:
         jack_file = f.read()

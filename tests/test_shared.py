@@ -67,3 +67,15 @@ def test_reset_parser_works(tokens_for_test, tokens_for_test_input):
     parser.reset()
     assert not parser.current()
     assert parser.advance() == "zero"
+
+
+def test_peak_parser_works(tokens_for_test, tokens_for_test_input):
+    raw, strat = tokens_for_test_input
+    parser = BaseParser(raw, strat)
+    assert parser.peak() == "zero"
+    parser.advance()
+    assert parser.peak() == "one"
+    parser.retreat()
+    assert parser.peak() == "zero"
+
+    # TODO: test when nothing left to peak...

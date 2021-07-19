@@ -37,6 +37,9 @@ class BaseParser:
     def has_more(self):
         return self._current_index + 1 < len(self._tokens)
 
+    def peak(self) -> Optional[Any]:
+        return self._tokens[self._current_index + 1] if self.has_more() else None
+
     def advance(self) -> Any:
         assert -1 <= self._current_index + 1 < len(self._tokens)
         self._current_index += 1
