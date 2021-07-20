@@ -9,14 +9,8 @@ outputs = ""
 
 def annotate(func):
     def wrap(*args, **kwargs):
-        filtered_args = args[1:] if len(args) and isinstance(args[0], CodeWriter) else args
-        filtered_args = [str(a) for a in filtered_args]
-        description = func.__name__ + " --- " + " ".join(filtered_args)
+        print("func", func, "called with", "------", args[1:], "---------------", kwargs)
         result = func(*args, **kwargs)
-        result_copied = result[:]
-        result_copied[0] += (" " * (20 - len(result_copied[0]))) + f"// {description}"
-        global outputs
-        outputs += ("\n" + "\n".join(result_copied))
         return result
 
     return wrap

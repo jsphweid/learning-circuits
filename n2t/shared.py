@@ -45,6 +45,9 @@ class BaseParser:
         self._current_index += 1
         return self.current()
 
+    def previous(self) -> Optional[Any]:
+        return self._tokens[self._current_index - 1] if self._current_index > 0 else None
+
     def retreat(self) -> Any:
         assert -1 <= self._current_index - 1 < len(self._tokens)
         self._current_index -= 1

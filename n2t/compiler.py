@@ -408,7 +408,9 @@ class CompilationEngine:
             if next_token.content in end_symbols:
                 self._tokenizer.retreat()
                 break
-            elif next_token.content in {"~", "-"}:
+            elif next_token.content == "(":
+                children.append(self._compile_term(next_token, {")"}, include=True))
+            elif self._tokenizer.previous().content == "(" and next_token.content in {"~", "-"}:
                 if peaked_token.content == "(":
                     children.append(self._compile_term(next_token, {")"}, include=True))
                 else:
@@ -435,8 +437,11 @@ class CompilationEngine:
             if first_token.content in end_symbols:
                 break
             next_token = self._tokenizer.advance()
-            if first_token.content in {"~", "-"}:
-                children.append(self._compile_term(next_token, {next_token.content}))
+            if len(children) == 1 and first_token.content in {"~", "-"}:
+                if next_token.content == "(":
+                    children.append(self._compile_term(next_token, {")"}, include=True))
+                else:
+                    children.append(self._compile_term(next_token, {next_token.content}))
                 break
             elif next_token.content in end_symbols:
                 if include:
