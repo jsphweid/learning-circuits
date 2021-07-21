@@ -41,7 +41,7 @@ def test_it_compiles_correct_xml(base_folder):
     # "Bat",
     "Main",
     # "PongGame",
-    # "SquareGame",
+    "SquareGame",
 ])
 def test_it_makes_correct_vm_code(base):
     with open(f"n2t/11_tests/{base}.jack") as f:
