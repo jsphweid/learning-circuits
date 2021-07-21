@@ -39,7 +39,7 @@ def test_it_compiles_correct_xml(base_folder):
 @pytest.mark.parametrize("base", [
     # "Ball",
     # "Bat",
-    # "Main",
+    "Main",
     # "PongGame",
     # "SquareGame",
 ])
