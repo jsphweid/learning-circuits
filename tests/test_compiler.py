@@ -1,6 +1,7 @@
 import pytest
 
-from n2t.compiler import get_tokens_as_xml, compile_as_xml
+from n2t.compiler import compile_as_xml, compile_to_vm
+from n2t.compiler.tokenizer import get_tokens_as_xml
 
 base_folders = [
     "10_tests/ArrayTest/Main",
@@ -33,3 +34,20 @@ def test_it_compiles_correct_xml(base_folder):
         token_xml_file = f.read()
 
     assert compile_as_xml(jack_file) == token_xml_file
+
+
+@pytest.mark.parametrize("base", [
+    # "Ball",
+    # "Bat",
+    # "Main",
+    # "PongGame",
+    # "SquareGame",
+])
+def test_it_makes_correct_vm_code(base):
+    with open(f"n2t/11_tests/{base}.jack") as f:
+        jack_file = f.read()
+
+    with open(f"n2t/11_tests/{base}.vm") as f:
+        vm_file = f.read()
+
+    assert compile_to_vm(jack_file) == vm_file
