@@ -31,7 +31,9 @@ token_xml_mapping = {
 
 class JackTokenizer(BaseParser):
     op_symbols = {"+", "-", "&", "|", "<", ">", "=", "~"}
-    all_symbols = op_symbols.union({"{", "}", "(", ")", "[", "]", ".", ",", ";", "*", "/"})
+    extended_op_symbols = {"*", "/"}
+    all_op_symbols = op_symbols.union(extended_op_symbols)
+    all_symbols = op_symbols.union({"{", "}", "(", ")", "[", "]", ".", ",", ";"}).union(extended_op_symbols)
     keywords = {"class", "constructor", "function", "method", "field", "static", "var", "int", "char", "boolean",
                 "void", "true", "false", "null", "this", "let", "do", "if", "else", "while", "return"}
 

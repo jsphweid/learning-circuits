@@ -50,6 +50,4 @@ def test_it_makes_correct_vm_code(base):
     with open(f"n2t/11_tests/{base}.vm") as f:
         vm_file = f.read()
 
-    # print('---', compile_as_xml(jack_file))
-
     assert compile_to_vm(jack_file) == vm_file

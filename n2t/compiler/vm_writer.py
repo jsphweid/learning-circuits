@@ -103,6 +103,14 @@ class VMWriter:
 
         return num_variables_declared
 
+    def _handle_string_const(self, token: Token) -> None:
+        assert token.type == TokenType.STRING_CONST
+        self._vm_line_writer.write_push(Segment.CONSTANT, len(token.content))
+        self._vm_line_writer.write_call("String.new", 1)
+        for char in token.content:
+            self._vm_line_writer.write_push(Segment.CONSTANT, ord(char))
+            self._vm_line_writer.write_call("String.appendChar", 2)
+
     def _handle_term(self, unit: Unit) -> None:
         assert unit.type == WrapperType.Term
 
@@ -124,6 +132,8 @@ class VMWriter:
                     self._vm_line_writer.write_push(Segment.CONSTANT, 0)
                 else:
                     raise NotImplementedError
+            elif child.type == TokenType.STRING_CONST:
+                self._handle_string_const(child)
             else:
                 raise NotImplementedError
         elif isinstance(unit.children[1], Token) and unit.children[1].content == ".":
@@ -146,11 +156,16 @@ class VMWriter:
         # if expression follows these forms, recurse
         if len(unit.children) == 3 and \
                 unit.children[0].type == WrapperType.Term and \
-                unit.children[1].type == TokenType.SYMBOL and unit.children[1].content in JackTokenizer.op_symbols and \
+                unit.children[1].type == TokenType.SYMBOL and \
+                unit.children[1].content in JackTokenizer.all_op_symbols and \
                 unit.children[2].type == WrapperType.Term:
             self._handle_term(unit.children[0])
             self._handle_term(unit.children[2])
-            self._vm_line_writer.write_arithmetic(self._content_to_command(unit.children[1].content))
+            if unit.children[1].content in JackTokenizer.extended_op_symbols:
+                method_name = "multiply" if unit.children[1].content == "*" else "divide"
+                self._vm_line_writer.write_call(f"Math.{method_name}", 2)
+            else:
+                self._vm_line_writer.write_arithmetic(self._content_to_command(unit.children[1].content))
             return
         elif len(unit.children) == 2 and \
                 unit.children[0].content == "-" and unit.children[0].content in JackTokenizer.op_symbols and \
