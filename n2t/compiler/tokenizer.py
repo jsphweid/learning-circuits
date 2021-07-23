@@ -30,14 +30,15 @@ token_xml_mapping = {
 
 
 class JackTokenizer(BaseParser):
+    op_symbols = {"+", "-", "&", "|", "<", ">", "=", "~"}
+    all_symbols = op_symbols.union({"{", "}", "(", ")", "[", "]", ".", ",", ";", "*", "/"})
+    keywords = {"class", "constructor", "function", "method", "field", "static", "var", "int", "char", "boolean",
+                "void", "true", "false", "null", "this", "let", "do", "if", "else", "while", "return"}
 
     @staticmethod
     def _jack_tokenizer(text: str) -> List[Token]:
-        symbols = {"{", "}", "(", ")", "[", "]", ".", ",", ";", "+", "-", "*", "/", "&", "|", "<", ">", "=", "~"}
-        keywords = {"class", "constructor", "function", "method", "field", "static", "var", "int", "char", "boolean",
-                    "void", "true", "false", "null", "this", "let", "do", "if", "else", "while", "return"}
         empty_space = " "
-        splitter = symbols.union({empty_space})
+        splitter = JackTokenizer.all_symbols.union({empty_space})
         override = {'"', "'"}
         overriding_with = None
         tokens: List[Token] = []
@@ -48,7 +49,7 @@ class JackTokenizer(BaseParser):
             evaluated_type = None
             if not given_type:
                 # try keyword
-                if collector in keywords:
+                if collector in JackTokenizer.keywords:
                     evaluated_type = TokenType.KEYWORD
                 else:
                     # try int const

@@ -4,7 +4,7 @@ from typing import List
 
 class Segment(Enum):
     CONSTANT = "constant"
-    ARG = "argument"
+    ARGUMENT = "argument"
     LOCAL = "local"
     STATIC = "static"
     POINTER = "pointer"

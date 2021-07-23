@@ -38,8 +38,10 @@ class SymbolTable:
                f"class - {self._class_scope}\n" \
                f"fn - {self._fn_scope}\n"
 
-    def start_subroutine(self) -> None:
+    def start_subroutine(self, is_method=False) -> None:
         self._fn_scope = SymbolTable._reset_dict()
+        if is_method:
+            self._fn_scope[IdentifierKind.ARG] += 1
 
     def define(self, name: str, type: str, kind: IdentifierKind) -> None:
         # TODO: should throw error if already defined?
@@ -64,6 +66,13 @@ class SymbolTable:
 
     def index_of(self, name: str) -> int:
         return self._require_item_in_scope(name).index
+
+    def exists(self, name: str) -> bool:
+        try:
+            self._require_item_in_scope(name)
+            return True
+        except:
+            return False
 
     def _require_item_in_scope(self, name: str) -> _Info:
         item = self._class_scope.get(name) or self._fn_scope.get(name)
