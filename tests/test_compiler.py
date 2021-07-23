@@ -42,10 +42,16 @@ def test_it_compiles_correct_xml(base_folder):
     "Main",
     "PongGame",
     "SquareGame",
+    "Average",
+    "ComplexArray",
+    "KeyboardTest",
+    "MathTest"
 ])
 def test_it_makes_correct_vm_code(base):
     with open(f"n2t/11_tests/{base}.jack") as f:
         jack_file = f.read()
+
+    # print('---', compile_as_xml(jack_file))
 
     with open(f"n2t/11_tests/{base}.vm") as f:
         vm_file = f.read()

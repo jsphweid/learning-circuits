@@ -128,7 +128,7 @@ class VMWriter:
                     # TODO: why do we push 0 then do not instead of pushing 1...?
                     self._vm_line_writer.write_push(Segment.CONSTANT, 0)
                     self._vm_line_writer.write_arithmetic(Command.NOT)
-                elif child.content in "false":
+                elif child.content in {"false", "null"}:
                     self._vm_line_writer.write_push(Segment.CONSTANT, 0)
                 else:
                     raise NotImplementedError
@@ -147,8 +147,40 @@ class VMWriter:
         elif isinstance(unit.children[0], Token) and unit.children[0].content == "(":
             # it's just an inner expression...
             self._handle_expression(unit.children[1])
+        elif isinstance(unit.children[0], Token) and \
+                unit.children[0].type == TokenType.IDENTIFIER and \
+                isinstance(unit.children[1], Token) and \
+                unit.children[1].content == "[":
+            # i.e. it's an array index
+            kind = self._symbol_table.kind_of(unit.children[0].content)
+            segment_type = self._kind_to_segment_type(kind)
+            identifier_index = self._symbol_table.index_of(unit.children[0].content)
+            self._handle_expression(unit.children[2])
+            self._vm_line_writer.write_push(segment_type, identifier_index)
+            self._vm_line_writer.write_arithmetic(Command.ADD)
+            self._vm_line_writer.write_pop(Segment.POINTER, 1)
+            self._vm_line_writer.write_push(Segment.THAT, 0)
         else:
             raise NotImplementedError
+
+    @staticmethod
+    def _make_rpn_indicies(length: int) -> List[int]:
+        """
+        turns this...
+        AxAxAxA
+        0,2,4,6
+
+        into
+        AAxAxAx
+        0214365
+        """
+        ret = []
+        for i in range(length):
+            if i == 0:
+                ret.append(0)
+            else:
+                ret.append((i - 1) if i % 2 == 0 else (i + 1))
+        return ret
 
     def _handle_expression(self, unit: Unit) -> None:
         assert unit.type == WrapperType.Expression
@@ -172,6 +204,21 @@ class VMWriter:
                 unit.children[1].type == WrapperType.Term:
             self._handle_term(unit.children[1])
             self._vm_line_writer.write_arithmetic(Command.NEG)
+            return
+
+        # handle cases like (a & b & c)
+        evens_are_terms = all([c.type == WrapperType.Term for i, c in enumerate(unit.children) if i % 2 == 0])
+        odds_are_and_ors = all([c.type == TokenType.SYMBOL and c.content in JackTokenizer.and_or_symbols
+                                for i, c in enumerate(unit.children) if i % 2 == 1])
+        if len(unit.children) > 3 and len(unit.children) % 2 == 1 and evens_are_terms and odds_are_and_ors:
+            indices = self._make_rpn_indicies(len(unit.children))
+            for i in indices:
+                if unit.children[i].type == TokenType.SYMBOL:
+                    command = Command.AND if unit.children[i].content == "&" else Command.OR
+                    self._vm_line_writer.write_arithmetic(command)
+                else:
+                    self._handle_term(unit.children[i])
+
             return
 
         for child in unit.children:
@@ -277,20 +324,30 @@ class VMWriter:
     def _handle_let_statement(self, unit: Unit) -> None:
         assert unit.type == WrapperType.LetStatement
 
-        # let statement has before and after `=`
-        # after `=` is always an expression then `;`
-        # for now assume that = is after keyword and identifier
-        assert unit.children[2].content == "="
-        assert unit.children[3].type == WrapperType.Expression
-        assert unit.children[4].type == TokenType.SYMBOL
-
-        self._handle_expression(unit.children[3])
-
-        # the first half creates a pop to the location of the identifier
-        # TODO: simplify this pattern?
         kind = self._symbol_table.kind_of(unit.children[1].content)
         segment_type = self._kind_to_segment_type(kind)
-        self._vm_line_writer.write_pop(segment_type, self._symbol_table.index_of(unit.children[1].content))
+        identifier_index = self._symbol_table.index_of(unit.children[1].content)
+
+        expressions = [c for c in unit.children if c.type == WrapperType.Expression]
+
+        if unit.children[2].content == "[":
+            self._handle_expression(expressions[0])
+            self._vm_line_writer.write_push(segment_type, identifier_index)
+            self._vm_line_writer.write_arithmetic(Command.ADD)
+
+        # There will be at least one, maybe two expressions.
+        # The last one should always become the assignment value
+        self._handle_expression(expressions[-1])
+
+        if unit.children[2].content == "=":
+            self._vm_line_writer.write_pop(segment_type, identifier_index)
+        elif unit.children[2].content == "[":
+            self._vm_line_writer.write_pop(Segment.TEMP, 0)
+            self._vm_line_writer.write_pop(Segment.POINTER, 1)
+            self._vm_line_writer.write_push(Segment.TEMP, 0)
+            self._vm_line_writer.write_pop(Segment.THAT, 0)
+        else:
+            raise NotImplementedError
 
     def _handle_statements(self, unit: Unit) -> None:
         for child in unit.children:
@@ -312,8 +369,8 @@ class VMWriter:
         pass
 
     def _handle_parameter_list(self, unit: Unit) -> None:
-        for i, child in enumerate(unit.children):
-            if child.type == TokenType.IDENTIFIER:
+        for i, child in enumerate([c for c in unit.children if c.type != TokenType.SYMBOL]):
+            if i % 2 == 1:
                 self._symbol_table.define(child.content, unit.children[i - 1].content, IdentifierKind.ARG)
 
     def _handle_unit_children(self, children: List[Unit]) -> None:
@@ -355,7 +412,6 @@ class VMWriter:
             # assign hidden variable (instance) to pointer for proper context
             self._vm_line_writer.write_push(Segment.ARGUMENT, 0)
             self._vm_line_writer.write_pop(Segment.POINTER, 0)
-            self._symbol_table.define("something", "anything", IdentifierKind.ARG)
 
         # then handle statements
         statements = next(c for c in body.children if c.type == WrapperType.Statements)

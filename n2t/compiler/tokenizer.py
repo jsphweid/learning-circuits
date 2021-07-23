@@ -30,7 +30,8 @@ token_xml_mapping = {
 
 
 class JackTokenizer(BaseParser):
-    op_symbols = {"+", "-", "&", "|", "<", ">", "=", "~"}
+    and_or_symbols = {"&", "|"}
+    op_symbols = {"+", "-", "<", ">", "=", "~"}.union(and_or_symbols)
     extended_op_symbols = {"*", "/"}
     all_op_symbols = op_symbols.union(extended_op_symbols)
     all_symbols = op_symbols.union({"{", "}", "(", ")", "[", "]", ".", ",", ";"}).union(extended_op_symbols)
