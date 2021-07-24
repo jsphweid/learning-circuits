@@ -2,7 +2,7 @@ import sys
 from typing import List, Optional, Dict
 from enum import Enum
 
-from n2t.shared import Command, BaseParser, WhiteSpaceStrategy
+from n2t.shared import BaseParser, WhiteSpaceStrategy
 
 
 class AssemblyCommandType(Enum):
@@ -13,13 +13,13 @@ class AssemblyCommandType(Enum):
 
 
 class Parser(BaseParser):
-    _commands = List[Command]
+    _tokens = List[str]
 
     def __init__(self, raw_file_contents: str) -> None:
         super().__init__(raw_file_contents, WhiteSpaceStrategy.ELIMINATE_ALL)
 
     def command_type(self) -> Optional[AssemblyCommandType]:
-        current = self.current_command()
+        current = self.current()
         if current:
             if current[0] == "@" and len(current) > 1:
                 return AssemblyCommandType.A_COMMAND
@@ -29,7 +29,7 @@ class Parser(BaseParser):
                 return AssemblyCommandType.C_COMMAND
 
     def symbol(self) -> Optional[str]:
-        current = self.current_command()
+        current = self.current()
         if current:
             if self.command_type() == AssemblyCommandType.A_COMMAND:
                 return current[1:]
@@ -37,13 +37,13 @@ class Parser(BaseParser):
                 return current.replace("(", "").replace(")", "")
 
     def dest(self) -> Optional[str]:
-        current = self.current_command()
+        current = self.current()
         if self.command_type() == AssemblyCommandType.C_COMMAND \
                 and "=" in current:
             return current.split("=")[0]
 
     def comp(self) -> Optional[str]:
-        current = self.current_command()
+        current = self.current()
         if self.command_type() == AssemblyCommandType.C_COMMAND:
             if "=" in current:
                 return current.split("=")[1]
@@ -51,7 +51,7 @@ class Parser(BaseParser):
                 return current.split(";")[0]
 
     def jump(self) -> Optional[str]:
-        current = self.current_command()
+        current = self.current()
         if self.command_type() == AssemblyCommandType.C_COMMAND \
                 and ";" in current:
             return current.split(";")[1]
@@ -163,7 +163,7 @@ def assemble(code: str) -> str:
     symbol_table = SymbolTable()
     parser = Parser(code)
     current_rom_address = 0
-    while parser.has_more_commands():
+    while parser.has_more():
         parser.advance()
         if parser.command_type() == AssemblyCommandType.L_COMMAND:
             symbol_table.add_entry(parser.symbol(), current_rom_address)
@@ -174,7 +174,7 @@ def assemble(code: str) -> str:
     instructions = []
     parser = Parser(code)
     next_unused_ram_address = 16
-    while parser.has_more_commands():
+    while parser.has_more():
         command = parser.advance()
         if parser.command_type() == AssemblyCommandType.A_COMMAND:
             if parser.command_is_a_and_symbol():

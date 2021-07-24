@@ -13,12 +13,12 @@ def strip_empty_lines(text: str):
 
 def test_parser_has_no_more_commands_if_empty():
     code = ""
-    assert not Parser(code).has_more_commands()
+    assert not Parser(code).has_more()
 
 
 def test_parser_has_more_commands_if_at_least_one_command():
     code = "D;JGT"
-    assert Parser(code).has_more_commands()
+    assert Parser(code).has_more()
 
 
 def test_parser_has_more_commands_after_running_a_few_but_not_all():
@@ -31,7 +31,7 @@ def test_parser_has_more_commands_after_running_a_few_but_not_all():
     parser = Parser(code)
     assert parser.advance() == "@SCREEN"
     assert parser.advance() == "D=A"
-    assert parser.has_more_commands()
+    assert parser.has_more()
 
 
 def test_parser_has_no_more_commands_after_running_through_all():
@@ -46,7 +46,7 @@ def test_parser_has_no_more_commands_after_running_through_all():
     assert parser.advance() == "@SCREEN"
     assert parser.advance() == "D=A"
     assert parser.advance() == "(SomeLabel)"
-    assert not parser.has_more_commands()
+    assert not parser.has_more()
 
 
 def test_parser_returns_correct_command_type():
